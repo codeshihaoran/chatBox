@@ -1,0 +1,31 @@
+{
+    "include": [
+        "./src"
+    ],
+    "compilerOptions": {
+        "target": "ESNext", // 指定编译后版本目标
+        "lib": [
+            "DOM",
+            "DOM.Iterable",
+            "ESNext"
+        ], //指定了包含在编译中库文件
+        "allowJs": false, // 不允许编译 js 文件
+        "module": "ESNext", // 指定使用的模块标准
+        "moduleResolution": "Node",
+        "skipLibCheck": false, // 是否跳过对类型文件定义的检查
+        "esModuleInterop": false, // 是否启用对 ES 模块默认导入支持
+        "strict": true, // 严格模式
+        "allowSyntheticDefaultImports": true, // 是否允许对没有默认导出的模块默认导入
+        "forceConsistentCasingInFileNames": true, // 强制文件名在导入时大小写一致
+        "resolveJsonModule": true, // 允许导入json文件提供类型支持
+        "isolatedModules": true, // 强制每个文件作为单独模块进行检查
+        "noEmit": true, // 禁止编译TS后输出JS文件
+        "jsx": "react", // 指定JSX处理方式，这里是编译JSX通过调用 React.createELement()
+        "baseUrl": ".",
+        "paths": {
+            "@/*": [
+                "src/*"
+            ]
+        }
+    }
+}
