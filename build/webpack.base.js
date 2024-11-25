@@ -3,6 +3,8 @@ const path = require('path')
 
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 
+const Dotenv = require('dotenv-webpack');
+
 module.exports = {
     entry: path.join(__dirname, '../src/index.tsx'),
     output: {
@@ -83,7 +85,12 @@ module.exports = {
         new HtmlWebpackPlugin({
             template: path.resolve(__dirname, '../public/index.html'),
             inject: true
-        })
+        }),
+        new Dotenv({
+            path: './.env', // 指定 .env 文件路径，默认是根目录的 .env
+            safe: true,     // 如果为 true，则需要 .env.example 文件来验证环境变量
+            systemvars: true // 将 process.env 的系统环境变量一起注入
+        }),
     ],
     // 持久化存储缓存
     cache: {
