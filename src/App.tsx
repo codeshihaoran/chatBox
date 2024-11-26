@@ -5,7 +5,7 @@ const { Header, Footer, Sider, Content } = Layout
 
 import Navbar from "./components/navbar";
 import Main from "./components/main";
-import Foot from "./components/footer";
+
 
 const App: React.FC = () => {
     return (
@@ -21,9 +21,6 @@ const App: React.FC = () => {
                     <Content className="content">
                         <Main />
                     </Content>
-                    <Footer className="footer">
-                        <Foot />
-                    </Footer>
                 </Layout>
             </Layout>
         </Flex>

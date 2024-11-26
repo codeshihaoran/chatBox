@@ -9,7 +9,6 @@
     flex-direction: column;
     height: 100vh;
     width: 100%;
-
 }
 
 .header {
@@ -22,31 +21,65 @@
     justify-content: center;
 }
 
+
 .content {
-    flex: 1;
-    overflow-y: auto;
-    text-align: center;
-    color: #333;
+    flex-grow: 1;
     background-color: #FFFFFF;
-    padding: 16px;
+    overflow-y: auto;
+}
+
+.chat-main {
+    width: 1225px;
+    margin: 0 auto;
+    height: 100%;
+}
+
+.main {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    max-width: 600px;
+    min-height: 80%;
+    margin: 0 auto;
+}
+
+.user {
+    align-self: flex-end;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 60%;
+    word-wrap: break-word;
+    text-align: right;
+}
+
+.ai {
+    align-self: flex-start;
+    background-color: #f1f1f1;
+    color: #333;
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 60%;
+    word-wrap: break-word;
+    text-align: left;
 }
 
 .sider {
-    height: 100%;
+    background-color: #F0F0F0;
+    flex-grow: 1;
     text-align: center;
     color: #333;
-    background-color: #F0F0F0;
 }
 
 .footer {
     text-align: center;
     color: #333;
-    background-color: #FFFFFF;
     flex: 0 0 10%;
     display: flex;
     align-items: center;
     justify-content: center;
-
 }
 
 .chat-input-container {
@@ -69,13 +102,6 @@
     font-size: 16px;
 }
 
-.chat-input:hover,
-.chat-input:focus {
-    border: none;
-    outline: none;
-    background-color: transparent;
-    box-shadow: none;
-}
 
 .chat-send-button {
     font-size: 16px;
@@ -92,10 +118,38 @@
     cursor: pointer;
 }
 
+.chat-input:hover,
+.chat-input:focus {
+    border: none;
+    outline: none;
+    background-color: transparent;
+    box-shadow: none;
+}
+
 .chat-send-button:hover {
     background-color: #1677FF;
 }
 
 .chat-send-button:active {
     background-color: #0958D9;
+}
+
+@media (max-width: 768px) {
+    .chat-main {
+        width: 100%;
+    }
+
+    .chat-input-container {
+        width: 80%;
+    }
+
+    .main {
+        max-width: 100%;
+        padding: 5px;
+    }
+
+    .user,
+    .ai {
+        max-width: 80%;
+    }
 }
