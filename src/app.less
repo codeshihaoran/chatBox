@@ -40,7 +40,7 @@
     gap: 10px;
     padding: 10px;
     max-width: 600px;
-    min-height: 80%;
+    min-height: 85%;
     margin: 0 auto;
 }
 
@@ -76,10 +76,16 @@
 .footer {
     text-align: center;
     color: #333;
-    flex: 0 0 10%;
+    min-height: 15%;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+    position: sticky;
+    bottom: 0;
+    background-color: #FFFFFF;
+    z-index: 10;
+
 }
 
 .chat-input-container {
