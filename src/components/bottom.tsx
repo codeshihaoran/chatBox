@@ -4,6 +4,7 @@ import { client, botId } from "../index";
 import { Input, Button } from "antd";
 import { SendOutlined } from "@ant-design/icons";
 const { TextArea } = Input
+import FileUpload from "./fileUpload";
 interface ChildComponentProps {
     sendDataToHome: (data: { msg: string; response: string }) => void; // 回调函数类型，接收一个字符串参数
 }
@@ -66,6 +67,7 @@ const Bottom: React.FC<ChildComponentProps> = ({ sendDataToHome }) => {
                 onKeyDown={handleKeyDown}
             >
             </TextArea>
+            <FileUpload />
             <Button
                 type="primary"
                 icon={<SendOutlined />}
@@ -75,6 +77,7 @@ const Bottom: React.FC<ChildComponentProps> = ({ sendDataToHome }) => {
             >
                 {loading ? '发送中...' : '发送'}
             </Button>
+
         </div>
     )
 }

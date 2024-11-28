@@ -16,3 +16,4 @@ export const client = new CozeAPI({
     baseURL: COZE_CN_BASE_URL,
 })
 export const botId = process.env.REACT_APP_BOT_ID
+export const token = process.env.REACT_APP_TOKEN
