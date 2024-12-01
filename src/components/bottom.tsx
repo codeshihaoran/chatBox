@@ -3,15 +3,14 @@ import { ChatEventType, RoleType } from "@coze/api";
 import { client, botId } from "../index";
 import { Input, Button } from "antd";
 import { SendOutlined } from "@ant-design/icons";
+import { useDispatch } from "react-redux";
+import { setContent } from "@/store/modules/content";
 const { TextArea } = Input
 import FileUpload from "./fileUpload";
-interface ChildComponentProps {
-    sendDataToHome: (data: { msg: string; response: string }) => void; // 回调函数类型，接收一个字符串参数
-}
-const Bottom: React.FC<ChildComponentProps> = ({ sendDataToHome }) => {
+const Bottom: React.FC = () => {
     const [message, setMessage] = useState('') // 输入框内容
     const [loading, setLoading] = useState(false) // 按钮禁用
-    const [response, setResponse] = useState(''); // 响应的完整内容
+    const dispatch = useDispatch()
     const handleClick = async () => {
         if (!message.trim()) {
             return
@@ -19,7 +18,6 @@ const Bottom: React.FC<ChildComponentProps> = ({ sendDataToHome }) => {
         setLoading(true)
         const currentMsg = message
         setMessage('')
-        setResponse(''); // 清空之前的响应内容
         try {
             const stream = await client.chat.stream({
                 bot_id: botId!,
@@ -33,20 +31,13 @@ const Bottom: React.FC<ChildComponentProps> = ({ sendDataToHome }) => {
             for await (const part of stream) {
                 if (part.event === ChatEventType.CONVERSATION_MESSAGE_DELTA) {
                     completeResponse += part.data.content;
-
-                    // 更新当前流式响应
-                    setResponse(completeResponse);
-
-                    // 每次增量内容更新时，可以实时传递给父组件
-                    const data = { msg: currentMsg, response: completeResponse };
-                    sendDataToHome(data);
+                    dispatch(setContent({ msg: currentMsg, response: completeResponse }))
                 }
             }
         } catch (err) {
             console.log(err);
         } finally {
             setLoading(false)
-            setMessage('')
         }
 
     }

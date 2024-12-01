@@ -35,9 +35,11 @@
   "dependencies": {
     "@ant-design/icons": "^5.5.1",
     "@coze/api": "^1.0.11",
+    "@reduxjs/toolkit": "^2.4.0",
     "antd": "^5.22.2",
     "axios": "^1.7.7",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-redux": "^9.1.2"
   }
 }

@@ -1,22 +1,17 @@
 import React from "react";
-
-
-interface ChildComponentProps {
-    msgBody: {
-        msg: string,
-        response: string
-    }
-}
-const Main: React.FC<ChildComponentProps> = ({ msgBody }) => {
-
+import { useSelector } from "react-redux";
+import { selectContent } from "@/store/modules/content";
+const Main: React.FC = () => {
+    const content = useSelector(selectContent)
+    const { msg, response } = content
     return (
         <div className="chat-main">
             <div className="main">
-                {msgBody.msg && <div className="user">
-                    {msgBody.msg}
+                {msg && <div className="user">
+                    {msg}
                 </div>}
-                {msgBody.response && <div className="ai">
-                    {msgBody.response}
+                {response && <div className="ai">
+                    {response}
                 </div>}
 
             </div>
