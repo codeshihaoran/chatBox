@@ -1,16 +1,13 @@
 import React, { useState } from "react";
-import { ChatEventType, RoleType } from "@coze/api";
-import { client, botId } from "../index";
 import { Input, Button } from "antd";
 import { SendOutlined } from "@ant-design/icons";
-import { useDispatch } from "react-redux";
-import { setContent } from "@/store/modules/content";
+import { useStartConversation } from "@/service/index";
 const { TextArea } = Input
 import FileUpload from "./fileUpload";
 const Bottom: React.FC = () => {
     const [message, setMessage] = useState('') // 输入框内容
     const [loading, setLoading] = useState(false) // 按钮禁用
-    const dispatch = useDispatch()
+    const startConversation = useStartConversation()
     const handleClick = async () => {
         if (!message.trim()) {
             return
@@ -19,27 +16,12 @@ const Bottom: React.FC = () => {
         const currentMsg = message
         setMessage('')
         try {
-            const stream = await client.chat.stream({
-                bot_id: botId!,
-                additional_messages: [{
-                    role: RoleType.User,
-                    content: currentMsg,
-                    content_type: 'text',
-                }],
-            });
-            let completeResponse = ''
-            for await (const part of stream) {
-                if (part.event === ChatEventType.CONVERSATION_MESSAGE_DELTA) {
-                    completeResponse += part.data.content;
-                    dispatch(setContent({ msg: currentMsg, response: completeResponse }))
-                }
-            }
+            await startConversation(currentMsg)
         } catch (err) {
             console.log(err);
         } finally {
             setLoading(false)
         }
-
     }
     const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (event.key === 'Enter' && !event.shiftKey) {
@@ -68,7 +50,6 @@ const Bottom: React.FC = () => {
             >
                 {loading ? '发送中...' : '发送'}
             </Button>
-
         </div>
     )
 }

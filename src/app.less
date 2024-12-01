@@ -50,21 +50,63 @@
     color: white;
     padding: 10px 15px;
     border-radius: 15px;
-    max-width: 60%;
+    max-width: 100%;
     word-wrap: break-word;
     text-align: right;
 }
 
 .ai {
     align-self: flex-start;
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 100%;
+}
+
+.follow_up {
+    align-self: flex-start;
     background-color: #f1f1f1;
     color: #333;
     padding: 10px 15px;
     border-radius: 15px;
-    max-width: 60%;
+    max-width: 100%;
     word-wrap: break-word;
     text-align: left;
 }
+
+.follow_up p::after {
+    content: "→";
+    margin-left: 5px;
+}
+
+/* Follow-up 悬停效果 */
+.follow_up:hover {
+    background-color: #eaeaea;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.follow_up:hover p {
+    text-decoration: underline;
+    color: #007bff;
+    font-weight: bold;
+    transition: color 0.3s ease, font-weight 0.3s ease;
+}
+
+.user,
+.ai,
+.follow_up {
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .follow_up {
+        padding: 10px 14px;
+        font-size: 14px;
+    }
+}
+
 
 .sider {
     background-color: #F0F0F0;

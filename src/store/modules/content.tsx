@@ -5,7 +5,8 @@ export const contentSlice = createSlice({
     initialState: {
         value: {
             msg: '',
-            response: ''
+            response: '',
+            follow: []
         }
     },
     reducers: {
@@ -17,4 +18,4 @@ export const contentSlice = createSlice({
 
 export const { setContent } = contentSlice.actions
 export default contentSlice.reducer
-export const selectContent = (state: { content: { value: { msg: string, response: string }; }; }) => state.content.value
+export const selectContent = (state: { content: { value: { msg: string, response: string, follow: string[] }; }; }) => state.content.value
