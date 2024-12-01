@@ -57,9 +57,14 @@
 
 .ai {
     align-self: flex-start;
-    padding: 10px 15px;
+    padding: 10px 5px;
     border-radius: 15px;
     max-width: 100%;
+}
+
+img {
+    width: 30px;
+    height: 30px;
 }
 
 .follow_up {
@@ -73,23 +78,22 @@
     text-align: left;
 }
 
+.follow_up:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+}
+
+.follow_up a {
+    color: #333;
+}
+
 .follow_up p::after {
     content: "→";
     margin-left: 5px;
 }
 
-/* Follow-up 悬停效果 */
-.follow_up:hover {
-    background-color: #eaeaea;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
-}
-
-.follow_up:hover p {
+.follow_up a:hover {
     text-decoration: underline;
-    color: #007bff;
-    font-weight: bold;
-    transition: color 0.3s ease, font-weight 0.3s ease;
 }
 
 .user,
