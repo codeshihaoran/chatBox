@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { Button, Upload, message } from "antd";
 import { FilePdfTwoTone, LoadingOutlined } from "@ant-design/icons";
-import { token } from "../index";
 import axios from "axios";
+
+import { token } from "../index";
+
 const FileUpload: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const handleUpload = async (file: File) => {

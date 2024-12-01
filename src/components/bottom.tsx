@@ -1,18 +1,24 @@
 import React, { useState } from "react";
 import { Input, Button } from "antd";
 import { SendOutlined } from "@ant-design/icons";
-import { useStartConversation } from "@/service/index";
+import { useDispatch, useSelector } from "react-redux";
 const { TextArea } = Input
-import FileUpload from "./fileUpload";
+
+import { useStartConversation } from "@/service/index";
+import { setLoading } from "@/store/modules/loading";
+import { selectLoading } from "@/store/modules/loading";
+import FileUpload from "@/components/fileUpload";
+
 const Bottom: React.FC = () => {
-    const [message, setMessage] = useState('') // 输入框内容
-    const [loading, setLoading] = useState(false) // 按钮禁用
+    const [message, setMessage] = useState('')
+    const dispatch = useDispatch()
     const startConversation = useStartConversation()
+    const loading = useSelector(selectLoading)
     const handleClick = async () => {
         if (!message.trim()) {
             return
         }
-        setLoading(true)
+        dispatch(setLoading(true))
         const currentMsg = message
         setMessage('')
         try {
@@ -20,7 +26,7 @@ const Bottom: React.FC = () => {
         } catch (err) {
             console.log(err);
         } finally {
-            setLoading(false)
+            dispatch(setLoading(false))
         }
     }
     const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {

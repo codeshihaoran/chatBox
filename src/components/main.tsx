@@ -1,18 +1,23 @@
 import React from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+
 import { selectContent } from "@/store/modules/content";
 import { useStartConversation } from "@/service/index";
+import { setLoading } from "@/store/modules/loading";
+
 const Main: React.FC = () => {
     const content = useSelector(selectContent)
+    const dispatch = useDispatch()
     const { msg, response, follow } = content
     const startConversation = useStartConversation()
     const handleClick = async (item: string) => {
+        dispatch(setLoading(true))
         try {
             await startConversation(item)
         } catch (err) {
             console.log(err);
         } finally {
-
+            dispatch(setLoading(false))
         }
     }
     return (
@@ -32,9 +37,7 @@ const Main: React.FC = () => {
                     <div className="follow_up" key={index} onClick={() => handleClick(item)}>
                         <p>{item}</p>
                     </div>
-                ))
-
-                }
+                ))}
             </div>
         </div>
     )
