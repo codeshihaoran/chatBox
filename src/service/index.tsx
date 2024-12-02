@@ -7,14 +7,18 @@ import { useDispatch } from "react-redux";
 export const useStartConversation = () => {
     const dispatch = useDispatch()
 
-    const startConversation = async (message: string) => {
+    const startConversation = async (message: string, contentType: string = 'text', mediaContent: any = null) => {
+        const additionalMsg: any[] = [{
+            role: RoleType.User,
+            content: message,
+            content_type: contentType,
+        }]
+        if (contentType !== 'text' && mediaContent) {
+            additionalMsg[0].content = mediaContent
+        }
         const stream = await client.chat.stream({
             bot_id: botId!,
-            additional_messages: [{
-                role: RoleType.User,
-                content: message,
-                content_type: 'text',
-            }],
+            additional_messages: additionalMsg
         });
 
         let completeResponse = '';

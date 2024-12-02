@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input, Button } from "antd";
 import { SendOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,6 +7,7 @@ const { TextArea } = Input
 import { useStartConversation } from "@/service/index";
 import { setLoading } from "@/store/modules/loading";
 import { selectLoading } from "@/store/modules/loading";
+import { selectFileInfo } from "@/store/modules/fileInfo";
 import FileUpload from "@/components/fileUpload";
 
 const Bottom: React.FC = () => {
@@ -14,6 +15,12 @@ const Bottom: React.FC = () => {
     const dispatch = useDispatch()
     const startConversation = useStartConversation()
     const loading = useSelector(selectLoading)
+    const fileInfo = useSelector(selectFileInfo)
+    useEffect(() => {
+        if (fileInfo && fileInfo.fileName) {
+            setMessage(prevMessage => `${prevMessage} ${fileInfo.fileName}`)
+        }
+    }, [fileInfo]);
     const handleClick = async () => {
         if (!message.trim()) {
             return
