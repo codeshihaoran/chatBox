@@ -131,7 +131,6 @@ img {
     bottom: 0;
     background-color: #FFFFFF;
     z-index: 10;
-
 }
 
 .chat-input-container {
@@ -143,6 +142,7 @@ img {
     background-color: #F0F0F0;
     border: 1px solid #D9D9D9;
     border-radius: 20px;
+    height: 100%;
 }
 
 .chat-input {
@@ -154,18 +154,36 @@ img {
     font-size: 16px;
 }
 
+.chat-send {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-evenly;
+}
+
+.chat-file {
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    width: 100%;
+}
+
+.chat-file button {
+    background: none;
+    border: none;
+    padding: 5px;
+    cursor: pointer;
+}
 
 .chat-send-button {
     font-size: 16px;
     height: 40px;
-    margin-left: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 20px;
     padding: 0 20px;
     background-color: #4096FF;
-    color: white;
     border: none;
     cursor: pointer;
 }

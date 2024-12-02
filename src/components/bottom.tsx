@@ -40,22 +40,24 @@ const Bottom: React.FC = () => {
             <TextArea
                 className="chat-input"
                 placeholder="请输入消息"
-                autoSize={{ minRows: 1.5, maxRows: 3 }}
+                autoSize={{ minRows: 2.5, maxRows: 5 }}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
             >
             </TextArea>
-            <FileUpload />
-            <Button
-                type="primary"
-                icon={<SendOutlined />}
-                className="chat-send-button"
-                onClick={handleClick}
-                disabled={loading}
-            >
-                {loading ? '发送中...' : '发送'}
-            </Button>
+            <div className="chat-send">
+                <FileUpload />
+                <Button
+                    type="primary"
+                    icon={<SendOutlined />}
+                    className="chat-send-button"
+                    onClick={handleClick}
+                    disabled={loading}
+                >
+                    {loading ? '发送中...' : '发送'}
+                </Button>
+            </div>
         </div>
     )
 }
