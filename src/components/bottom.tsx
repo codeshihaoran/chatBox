@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { Input, Button } from "antd";
+import React, { useState, useEffect, useRef } from "react";
+import { Button } from "antd";
 import { SendOutlined } from "@ant-design/icons";
 import { useDispatch, useSelector } from "react-redux";
-const { TextArea } = Input
+import ReactQuill from "react-quill"
+import "react-quill/dist/quill.snow.css";
 
 import { useStartConversation } from "@/service/index";
 import { setLoading } from "@/store/modules/loading";
@@ -12,21 +13,32 @@ import FileUpload from "@/components/fileUpload";
 
 const Bottom: React.FC = () => {
     const [message, setMessage] = useState('')
+    const reactQuillRef = useRef<ReactQuill>(null);
+
     const dispatch = useDispatch()
     const startConversation = useStartConversation()
     const loading = useSelector(selectLoading)
     const fileInfo = useSelector(selectFileInfo)
     useEffect(() => {
-        if (fileInfo && fileInfo.fileName) {
-            setMessage(prevMessage => `${prevMessage} ${fileInfo.fileName}`)
+        if (fileInfo && fileInfo.fileBase) {
+            const quill = reactQuillRef.current?.getEditor()
+            if (quill) {
+                const range = quill.getSelection();
+                if (range) {
+                    setTimeout(() => {
+                        quill.insertEmbed(range.index, fileInfo.fileType, fileInfo.fileBase);
+                    }, 0);
+                }
+            }
         }
-    }, [fileInfo]);
+
+    }, [fileInfo])
     const handleClick = async () => {
         if (!message.trim()) {
             return
         }
         dispatch(setLoading(true))
-        const currentMsg = message
+        const currentMsg = message.replace(/<\/?[^>]+(>|$)/g, "");
         setMessage('')
         try {
             await startConversation(currentMsg)
@@ -44,15 +56,18 @@ const Bottom: React.FC = () => {
     }
     return (
         <div className="chat-input-container">
-            <TextArea
-                className="chat-input"
-                placeholder="请输入消息"
-                autoSize={{ minRows: 2.5, maxRows: 5 }}
+            <ReactQuill
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={setMessage}
+                placeholder="请输入消息"
                 onKeyDown={handleKeyDown}
-            >
-            </TextArea>
+                className="chat-input"
+                ref={reactQuillRef}
+                modules={{
+                    toolbar: false
+                }}
+
+            />
             <div className="chat-send">
                 <FileUpload />
                 <Button

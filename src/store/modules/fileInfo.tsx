@@ -6,7 +6,8 @@ export const fileInfoSlice = createSlice({
         value: {
             file_id: null,
             fileName: '',
-            fileType: ''
+            fileType: '',
+            fileBase: '',
         }
     },
     reducers: {
@@ -18,4 +19,4 @@ export const fileInfoSlice = createSlice({
 
 export const { setFileInfo } = fileInfoSlice.actions
 export default fileInfoSlice.reducer
-export const selectFileInfo = (state: { fileInfo: { value: { file_id: null, fileName: string, fileType: string }; }; }) => state.fileInfo.value
+export const selectFileInfo = (state: { fileInfo: { value: { file_id: null, fileName: string, fileType: string, fileBase: string }; }; }) => state.fileInfo.value
