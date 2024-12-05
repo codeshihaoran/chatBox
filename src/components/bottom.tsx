@@ -52,11 +52,16 @@ const Bottom: React.FC = () => {
             dispatch(setLoading(false))
         }
     }
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault()
+            handleClick()
+        }
+    }
     return (
         <div className="chat-input-container" onKeyDownCapture={(e) => {
-            if (e.code === 'Enter' && !e.shiftKey) {
+            if (e.code === 'Enter') {
                 e.preventDefault()
-                handleClick()
             }
         }}>
             <ReactQuill
@@ -68,6 +73,7 @@ const Bottom: React.FC = () => {
                 modules={{
                     toolbar: false
                 }}
+                onKeyDown={handleKeyDown}
 
             />
             <div className="chat-send">

@@ -11,7 +11,9 @@ export const contentSlice = createSlice({
     },
     reducers: {
         setContent: (state, action) => {
-            state.value = { ...state.value, ...action.payload };
+            state.value.msg = action.payload.msg || state.value.msg;
+            state.value.response = action.payload.response || state.value.response;
+            state.value.follow = action.payload.follow || state.value.follow;
         }
     }
 })
