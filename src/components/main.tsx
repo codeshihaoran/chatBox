@@ -1,14 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { marked } from "marked";
-import hljs from "../highlight";
 import 'highlight.js/styles/default.css';
+import { token } from "../index";
 
 import aiImage from '@/assets/imgs/ai.jpg';
 import { selectContent } from "@/store/modules/content";
 import { useStartConversation } from "@/service/index";
 import { setLoading } from "@/store/modules/loading";
-import { message } from "antd";
+import { selectConversation } from "@/store/modules/conversation";
+import { useMarked } from "./marked";
+import axios from "axios";
+
+type Message = {
+    userContent: string;
+    assistantContent: string;
+};
 
 const Main: React.FC = () => {
     const content = useSelector(selectContent);
@@ -16,75 +22,57 @@ const Main: React.FC = () => {
     const [markRes, setMarkRes] = useState('');
     const { msg, response, follow } = content;
     const startConversation = useStartConversation();
+    const { conversation_id } = useSelector(selectConversation)
+
+    const [markContent, setMarkContent] = useState<Message[]>([]);
+    const startMarked = useMarked()
+
+    useEffect(() => {
+        const getMessageList = async () => {
+            if (conversation_id) {
+                try {
+                    const response = await axios.post('https://api.coze.cn/v1/conversation/message/list',
+                        {},
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                            },
+                            params: { conversation_id }
+                        }
+                    )
+                    const { data } = response
+                    if (data.code === 0) {
+                        data.data.reverse()
+                        const newData = []
+                        for (let i = 0; i < data.data.length - 2; i += 2) {
+                            const userMessage = data.data[i]
+                            const assistantMessage = data.data[i + 1]
+                            const aiContent = await startMarked(assistantMessage.content)
+                            const newItem = {
+                                userContent: userMessage?.content || '',
+                                assistantContent: aiContent || ''
+                            };
+                            newData.push(newItem)
+                        }
+                        setMarkContent(newData)
+                    }
+                } catch {
+
+                }
+            }
+        }
+        getMessageList()
+    }, [msg])
     useEffect(() => {
         const processResponse = async () => {
-            const markResponse = await marked(response);
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(markResponse, 'text/html');
-            const codeBlocks = doc.querySelectorAll('pre > code');
-            codeBlocks.forEach((block) => {
-                const codeContent = block.textContent || '';
-                const languageMatch = block.className.match(/language-(\w+)/);
-                const language = languageMatch ? languageMatch[1] : 'plaintext'
-                const highlightedCode = hljs.highlight(codeContent, { language }).value;
-
-                // 代码块 language 和 copy 按钮
-                const blockTopStyle = document.createElement("div")
-                blockTopStyle.setAttribute('class', 'hljs-div')
-
-                const blockSpan = document.createElement('span')
-                blockSpan.textContent = language
-                blockSpan.setAttribute('class', 'hljs-span')
-
-                const blockBtn = document.createElement("button")
-                blockBtn.setAttribute('class', 'hljs-btn')
-                blockBtn.textContent = '复制'
-
-                blockTopStyle.appendChild(blockSpan)
-                blockTopStyle.appendChild(blockBtn)
-
-                block.innerHTML = highlightedCode
-
-                let fistChild = block.firstChild
-                if (fistChild) {
-                    block.insertBefore(blockTopStyle, fistChild)
-                }
-
-                block.classList.add('hljs');
-            });
-
-            setMarkRes(doc.body.innerHTML);
+            const resMarked = await startMarked(response)
+            setMarkRes(resMarked);
         };
 
         processResponse();
     }, [response]);
-    useEffect(() => {
-        const handleCopyClick = async (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
-            // 确保点击的是带 hljs-btn 按钮
-            if (target && target.classList.contains('hljs-btn')) {
-                const codeBlock = target.closest('pre > code');
-                // 提取纯文本
-                if (codeBlock) {
-                    const pureText = Array.from(codeBlock.childNodes)
-                        .filter(node => !(node as HTMLElement).classList?.contains('hljs-div'))
-                        .map(node => node.textContent)
-                        .join('')
-                    try {
-                        await navigator.clipboard.writeText(pureText);
-                        message.success('代码已复制');
-                    } catch {
-                        message.error('复制失败');
-                    }
-                }
-            }
-        };
-        // 添加用户点击页面监听器
-        document.addEventListener('click', handleCopyClick);
-        return () => {
-            document.removeEventListener('click', handleCopyClick);
-        };
-    }, []);
+
     const handleClick = async (item: string) => {
         dispatch(setLoading(true));
         try {
@@ -95,9 +83,21 @@ const Main: React.FC = () => {
             dispatch(setLoading(false));
         }
     };
-
     return (
         <div className="chat-main">
+            {/* 历史记录区域 */}
+            {markContent && markContent.map((item, index) => (
+                <div className="main" key={index}>
+                    {item.userContent && <div className="user">{item.userContent}</div>}
+                    {item.assistantContent && (
+                        <div className="ai">
+                            <img src={aiImage} alt="" />
+                            <div className="test" dangerouslySetInnerHTML={{ __html: item.assistantContent }} />
+                        </div>
+                    )}
+                </div>
+            ))}
+            {/* 流式输出区域 */}
             <div className="main">
                 {msg && <div className="user">{msg}</div>}
                 {markRes && (
