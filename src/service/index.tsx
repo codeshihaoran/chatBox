@@ -2,12 +2,13 @@ import { ChatEventType, RoleType } from "@coze/api";
 import { client, botId } from "../index";
 import { setContent } from "@/store/modules/content";
 import { useDispatch } from "react-redux";
-
 // 自定义 hook，用于启动对话
 export const useStartConversation = () => {
     const dispatch = useDispatch()
-
     const startConversation = async (message: string, contentType: string = 'text', mediaContent: any = null) => {
+        const conversationId = localStorage.getItem("conversation_id")
+        console.log(conversationId);
+
         const additionalMsg: any[] = [{
             role: RoleType.User,
             content: message,
@@ -18,6 +19,7 @@ export const useStartConversation = () => {
         }
         const stream = await client.chat.stream({
             bot_id: botId!,
+            conversation_id: conversationId!,
             additional_messages: additionalMsg
         });
 
