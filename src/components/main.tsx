@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import 'highlight.js/styles/default.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCopy, faRedo } from '@fortawesome/free-solid-svg-icons';
 
 import aiImage from '@/assets/imgs/ai.jpg';
 import { selectContent } from "@/store/modules/content";
 import { useStartConversation } from "@/service/index";
 import { setLoading } from "@/store/modules/loading";
 import { selectConversationInfo } from "@/store/modules/conversationInfo";
-import { setContent } from "@/store/modules/content";
 import { useMarked } from "./marked";
 
 const Main: React.FC = () => {
@@ -78,6 +79,16 @@ const Main: React.FC = () => {
                     <div className="ai">
                         <img src={aiImage} alt="" />
                         <div className="test" dangerouslySetInnerHTML={{ __html: markRes }} />
+                    </div>
+                )}
+                {markRes && (
+                    <div className="icons">
+                        <button className="copy-btn">
+                            <FontAwesomeIcon icon={faCopy} style={{ fontSize: "14px" }} />
+                        </button>
+                        <button>
+                            <FontAwesomeIcon icon={faRedo} style={{ fontSize: "14px" }} />
+                        </button>
                     </div>
                 )}
                 {localFollow.length > 0 &&
