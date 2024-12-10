@@ -10,6 +10,7 @@ import { useStartConversation } from "@/service/index";
 import { setLoading } from "@/store/modules/loading";
 import { selectConversationInfo } from "@/store/modules/conversationInfo";
 import { useMarked } from "./marked";
+import { message } from "antd";
 
 const Main: React.FC = () => {
     const content = useSelector(selectContent);
@@ -58,6 +59,10 @@ const Main: React.FC = () => {
             dispatch(setLoading(false));
         }
     };
+    const handleCopyText = () => {
+        navigator.clipboard.writeText(response)
+        message.success('复制成功')
+    }
     return (
         <div className="chat-main">
             {/* 历史记录区域 */}
@@ -83,7 +88,7 @@ const Main: React.FC = () => {
                 )}
                 {markRes && (
                     <div className="icons">
-                        <button className="copy-btn">
+                        <button className="copy-btn" onClick={handleCopyText}>
                             <FontAwesomeIcon icon={faCopy} style={{ fontSize: "14px" }} />
                         </button>
                         <button>
