@@ -9,10 +9,16 @@ import { selectContent } from "@/store/modules/content";
 import { useStartConversation } from "@/service/index";
 import { setLoading } from "@/store/modules/loading";
 import { selectConversationInfo } from "@/store/modules/conversationInfo";
+import { selectConversation } from "@/store/modules/conversation";
+import { setContent } from "@/store/modules/content";
 import { useMarked } from "./marked";
 import { message } from "antd";
+import { client, botId, token } from '../index'
+import { ChatEventType, RoleType } from "@coze/api";
+import axios from "axios";
 
 const Main: React.FC = () => {
+    const { conversation_id } = useSelector(selectConversation)
     const content = useSelector(selectContent);
     const { conversationInfo } = useSelector(selectConversationInfo)
     const dispatch = useDispatch();
@@ -21,7 +27,7 @@ const Main: React.FC = () => {
     const [localFollow, setLocalFollow] = useState<string[]>([])
     const [localMsg, setLocalMsg] = useState<string>('')
 
-    const { msg, response, follow } = content;
+    const { msg, response, follow, message_id } = content;
     const startConversation = useStartConversation();
     const startMarked = useMarked()
 
@@ -58,10 +64,80 @@ const Main: React.FC = () => {
         } finally {
             dispatch(setLoading(false));
         }
-    };
+    }
+
     const handleCopyText = () => {
         navigator.clipboard.writeText(response)
         message.success('复制成功')
+    }
+
+    const handleRegenerate = async () => {
+        try {
+            // 本地清空
+            setMarkRes('')
+            setLocalFollow([])
+
+            await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    params: { conversation_id, message_id }
+                }
+            )
+
+            const response = await axios.post('https://api.coze.cn/v1/conversation/message/list',
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    params: { conversation_id }
+                }
+            )
+
+            const userMsgId = response.data.data[0].id
+
+            await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                    params: { conversation_id, message_id: userMsgId }
+                }
+            )
+            const stream = await client.chat.stream({
+                bot_id: botId!,
+                conversation_id: conversation_id!,
+                additional_messages: [{
+                    role: RoleType.User,
+                    content: localMsg,
+                    content_type: 'text',
+                }]
+            });
+
+            let completeResponse = '';
+            let followArr: string[] = [];
+            let messageId = ''
+            for await (const part of stream) {
+                if (part.event === ChatEventType.CONVERSATION_MESSAGE_DELTA) {
+                    completeResponse += part.data.content;
+                    messageId = part.data.id
+                }
+                if (part.event === ChatEventType.CONVERSATION_MESSAGE_COMPLETED && part.data.type === "follow_up") {
+                    followArr = [...followArr, part.data.content];
+                }
+
+                dispatch(setContent({ msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId }));
+            }
+
+        } catch {
+
+        }
+
     }
     return (
         <div className="chat-main">
@@ -91,7 +167,7 @@ const Main: React.FC = () => {
                         <button className="copy-btn" onClick={handleCopyText}>
                             <FontAwesomeIcon icon={faCopy} style={{ fontSize: "14px" }} />
                         </button>
-                        <button>
+                        <button onClick={handleRegenerate}>
                             <FontAwesomeIcon icon={faRedo} style={{ fontSize: "14px" }} />
                         </button>
                     </div>

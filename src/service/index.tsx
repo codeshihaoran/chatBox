@@ -63,16 +63,17 @@ export const useStartConversation = () => {
 
         let completeResponse = '';
         let followArr: string[] = [];
-
+        let messageId = ''
         for await (const part of stream) {
             if (part.event === ChatEventType.CONVERSATION_MESSAGE_DELTA) {
                 completeResponse += part.data.content;
+                messageId = part.data.id
             }
             if (part.event === ChatEventType.CONVERSATION_MESSAGE_COMPLETED && part.data.type === "follow_up") {
                 followArr = [...followArr, part.data.content];
             }
 
-            dispatch(setContent({ msg: message, response: completeResponse, follow: followArr }));
+            dispatch(setContent({ msg: message, response: completeResponse, follow: followArr, message_id: messageId }));
         }
     };
 
