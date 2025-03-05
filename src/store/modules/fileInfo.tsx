@@ -1,22 +1,43 @@
 import { createSlice } from "@reduxjs/toolkit";
-
+interface FileInfo {
+    file_id: string | null;
+    fileName: string;
+    fileType: string;
+    isloading: boolean;
+    fileBase: string;
+    file: File
+}
 export const fileInfoSlice = createSlice({
     name: 'fileInfo',
     initialState: {
-        value: {
-            file_id: null,
-            fileName: '',
-            fileType: '',
-            fileBase: '',
-        }
+        uploadFileInfo: [] as FileInfo[]
     },
     reducers: {
         setFileInfo: (state, action) => {
-            state.value = { ...state.value, ...action.payload };
+            // 这里可以使用 ...
+            let lastFileInfo = state.uploadFileInfo[state.uploadFileInfo.length - 1]
+            lastFileInfo.fileBase = action.payload.fileBase
+            lastFileInfo.isloading = action.payload.isloading
+            lastFileInfo.file_id = action.payload.file_id
+            lastFileInfo.fileName = action.payload.fileName
+        },
+        // 添加文件
+        addFileInfo: (state, action) => {
+            state.uploadFileInfo.push(action.payload)
+        },
+        // 删除某个文件
+        deleteFileInfo: (state, action) => {
+            state.uploadFileInfo = state.uploadFileInfo.filter(item => {
+                return item.file_id !== action.payload
+            })
+        },
+        // 清空文件信息
+        clearFileInfo: (state) => {
+            state.uploadFileInfo = []
         }
     }
 })
 
-export const { setFileInfo } = fileInfoSlice.actions
+export const { addFileInfo, deleteFileInfo, clearFileInfo, setFileInfo } = fileInfoSlice.actions
 export default fileInfoSlice.reducer
-export const selectFileInfo = (state: { fileInfo: { value: { file_id: null, fileName: string, fileType: string, fileBase: string }; }; }) => state.fileInfo.value
+export const selectUploadFileInfo = (state: { fileInfo: { uploadFileInfo: FileInfo[] } }) => state.fileInfo.uploadFileInfo

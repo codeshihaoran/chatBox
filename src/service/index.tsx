@@ -13,6 +13,8 @@ export const useStartConversation = () => {
     const { conversation_id } = useSelector(selectConversation)
     const startMarked = useMarked()
     const startConversation = async (message: string, contentType: string = 'text', mediaContent: any = null) => {
+        console.log("111", typeof contentType);
+
         // 这里先获取消息列表
         if (conversation_id) {
             try {
@@ -49,17 +51,15 @@ export const useStartConversation = () => {
 
         const additionalMsg: any[] = [{
             role: RoleType.User,
-            content: message,
+            content: contentType === 'text' ? message : mediaContent,
             content_type: contentType,
         }]
-        if (contentType !== 'text' && mediaContent) {
-            additionalMsg[0].content = mediaContent
-        }
         const stream = await client.chat.stream({
             bot_id: botId!,
             conversation_id: conversation_id!,
             additional_messages: additionalMsg
         });
+        console.log(stream);
 
         let completeResponse = '';
         let followArr: string[] = [];

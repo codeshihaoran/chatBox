@@ -4,6 +4,7 @@ import 'highlight.js/styles/default.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy, faRedo } from '@fortawesome/free-solid-svg-icons';
 
+import { selectUploadFileInfo } from "@/store/modules/fileInfo";
 import aiImage from '@/assets/imgs/ai.jpg';
 import { selectContent } from "@/store/modules/content";
 import { useStartConversation } from "@/service/index";
@@ -14,10 +15,13 @@ import { setContent } from "@/store/modules/content";
 import { useMarked } from "./marked";
 import { message } from "antd";
 import { client, botId, token } from '../index'
-import { ChatEventType, RoleType } from "@coze/api";
+import { ChatEventType, RoleType, ContentType } from "@coze/api";
 import axios from "axios";
 
 const Main: React.FC = () => {
+    const fileInfo = useSelector(selectUploadFileInfo)
+    // console.log(fileInfo.fileName);
+
     const { conversation_id } = useSelector(selectConversation)
     const content = useSelector(selectContent);
     const { conversationInfo } = useSelector(selectConversationInfo)
@@ -155,7 +159,16 @@ const Main: React.FC = () => {
             ))}
             {/* 流式输出区域以及渲染follow区域 */}
             <div className="main">
-                {localMsg && <div className="user">{localMsg}</div>}
+                {localMsg && <div className="user">
+                    {fileInfo.map(item => (
+                        item.fileType === 'image' ? (<div className="uploaded-image">
+                            <img src={item.fileBase} alt={item.fileName} style={{ maxWidth: '200px' }} />
+                        </div>) : (<div className="uploaded-file">
+                            <a href="#">📎 {item.fileName}</a>
+                        </div>)
+                    ))}
+                    {localMsg}
+                </div>}
                 {markRes && (
                     <div className="ai">
                         <img src={aiImage} alt="" />

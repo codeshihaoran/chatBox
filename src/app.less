@@ -149,13 +149,103 @@ img {
 .chat-input-container {
     display: flex;
     width: 50%;
-    align-items: center;
     justify-content: center;
-    padding: 8px 0px;
+    padding: 8px;
     background-color: #F0F0F0;
     border: 1px solid #D9D9D9;
     border-radius: 20px;
     height: 100%;
+    flex-direction: column;
+}
+
+/* 上传文件容器样式 */
+.uploaded-files-container {
+    width: 90%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 8px;
+    margin-bottom: 8px;
+}
+
+/* 新增 input 和 send 按钮的容器 */
+.input-and-send-container {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    flex-direction: row;
+}
+
+.uploaded-file-item {
+    position: relative;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+/* 图片容器样式 */
+.uploaded-image-container {
+    position: relative;
+    width: 80px;
+    height: 80px;
+}
+
+.uploaded-image-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #D9D9D9;
+}
+
+/* 文件容器样式 */
+.uploaded-file-container {
+    background-color: #E8E8E8;
+    padding: 8px 12px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    max-width: 200px;
+}
+
+.file-name {
+    font-size: 14px;
+    margin-right: 8px;
+    word-break: break-all;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+/* 删除按钮样式 */
+.delete-file-button {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.delete-file-button:hover {
+    opacity: 1;
+}
+
+.uploaded-file-container .delete-file-button {
+    position: relative;
+    top: 0;
+    right: 0;
+    margin-left: 4px;
 }
 
 .ql-container {
@@ -168,23 +258,24 @@ img {
     background: transparent;
     box-shadow: none;
     font-size: 16px;
-    height: 100%;
-    width: 82%;
+    flex: 1;
+    padding: 8px 12px;
+    height: 40px;
+    resize: none;
+    margin-right: 10px;
 }
-
 
 .chat-send {
     display: flex;
-    flex-direction: column;
-    height: 100%;
-    justify-content: space-evenly;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
 }
 
 .chat-file {
     display: flex;
-    justify-content: space-evenly;
+    gap: 10px;
     align-items: center;
-    width: 100%;
 }
 
 .chat-file button {
@@ -314,4 +405,62 @@ img {
 .hljs-number {
     color: #005cc5;
 
+}
+
+.uploaded-image img {
+    width: auto;
+    height: auto;
+    max-width: 300px;
+    max-height: 300px;
+    border-radius: 8px;
+    margin: 5px 0;
+}
+
+.uploaded-file {
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+}
+
+.uploaded-file a {
+    color: #1890ff;
+    text-decoration: none;
+}
+
+/* 加载中的图片容器 */
+.loading-image {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f0f0f0;
+    border-radius: 8px;
+}
+
+.spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #4096FF;
+    animation: spin 1s ease-in-out infinite;
+}
+
+.file-loading {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #4096FF;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
