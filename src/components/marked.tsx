@@ -7,6 +7,14 @@ export const useMarked = () => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(markResponse, 'text/html');
         const codeBlocks = doc.querySelectorAll('pre > code');
+        const aElement = doc.querySelector("a")
+        if (aElement) {
+            const link = aElement.href
+            const imgElement = doc.createElement("img")
+            imgElement.src = link
+            imgElement.classList.add('generate-img')
+            aElement.parentNode?.replaceChild(imgElement, aElement)
+        }
         codeBlocks.forEach((block) => {
             const codeContent = block.textContent || '';
             const languageMatch = block.className.match(/language-(\w+)/);

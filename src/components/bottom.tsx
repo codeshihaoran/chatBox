@@ -8,10 +8,10 @@ import { useStartConversation } from "@/service/index";
 import { setLoading } from "@/store/modules/loading";
 import { selectLoading } from "@/store/modules/loading";
 import { selectUploadFileInfo } from "@/store/modules/fileInfo";
-import { setFileInfo, addFileInfo, deleteFileInfo, clearFileInfo } from "@/store/modules/fileInfo";
+import { setFileInfo, addFileInfo, deleteFileInfo } from "@/store/modules/fileInfo";
 import axios from "axios";
 import { token } from '@/index'
-
+import store from "@/store";
 // 定义消息内容类型
 interface TextMessage {
     type: 'text';
@@ -48,7 +48,7 @@ const Bottom: React.FC = () => {
         try {
             if (fileInfo.length > 0) {
                 // 这里上传文件
-                fileInfo.forEach(async item => {
+                await Promise.all(fileInfo.map(async (item) => {
                     const formData = new FormData()
                     formData.append('file', item.file)
                     const response = await axios.post('https://api.coze.cn/v1/files/upload', formData, {
@@ -67,13 +67,13 @@ const Bottom: React.FC = () => {
                             file: item.file
                         }))
                     }
-                })
-
+                }))
+                const updatedFileInfo = store.getState().fileInfo.uploadFileInfo
                 const messageContent: MessageContent[] = [{
                     type: 'text',
                     text: currentMsg
                 }]
-                fileInfo.forEach(item => {
+                updatedFileInfo.forEach(item => {
                     const id = item.file_id
                     const type = item.fileType
                     messageContent.push({
