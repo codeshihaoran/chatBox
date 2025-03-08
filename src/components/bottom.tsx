@@ -5,13 +5,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFolderPlus, faCameraAlt } from '@fortawesome/free-solid-svg-icons';
 import { useDispatch, useSelector } from "react-redux";
 import { useStartConversation } from "@/service/index";
-import { setLoading } from "@/store/modules/loading";
-import { selectLoading } from "@/store/modules/loading";
-import { selectUploadFileInfo } from "@/store/modules/fileInfo";
-import { setFileInfo, addFileInfo, deleteFileInfo } from "@/store/modules/fileInfo";
+import { setLoading, selectLoading } from "@/store/modules/loading";
+import { setFileInfo, addFileInfo, deleteFileInfo, clearFileInfo, selectUploadFileInfo } from "@/store/modules/fileInfo";
+import { addSentFile, updateSessionId } from '@/store/modules/sentFileInfo';
+
 import axios from "axios";
 import { token } from '@/index'
 import store from "@/store";
+
 // 定义消息内容类型
 interface TextMessage {
     type: 'text';
@@ -46,8 +47,10 @@ const Bottom: React.FC = () => {
         const currentMsg = editorContent;
         setInput('')
         try {
+            dispatch(updateSessionId());
+            const newSessionId = store.getState().sentFileInfo.currentSessionId;
             if (fileInfo.length > 0) {
-                // 这里上传文件
+                // 上传文件并获取文件ID
                 await Promise.all(fileInfo.map(async (item) => {
                     const formData = new FormData()
                     formData.append('file', item.file)
@@ -58,6 +61,7 @@ const Bottom: React.FC = () => {
                     });
                     const { code, data } = response.data;
                     if (code === 0) {
+                        // 更新当前文件信息
                         dispatch(setFileInfo({
                             file_id: data.id,
                             fileName: data.file_name,
@@ -66,8 +70,16 @@ const Bottom: React.FC = () => {
                             fileBase: item.fileBase,
                             file: item.file
                         }))
+                        dispatch(addSentFile({
+                            file_id: data.id,
+                            fileName: data.file_name,
+                            fileType: item.fileType,
+                            fileBase: item.fileBase,
+                            session_id: newSessionId
+                        }))
                     }
                 }))
+
                 const updatedFileInfo = store.getState().fileInfo.uploadFileInfo
                 const messageContent: MessageContent[] = [{
                     type: 'text',
@@ -82,13 +94,11 @@ const Bottom: React.FC = () => {
                     })
                 })
                 const content = JSON.stringify(messageContent)
-
-                await startConversation(currentMsg, 'object_string', content)
-
+                dispatch(clearFileInfo())
+                await startConversation(currentMsg, 'object_string', content, newSessionId)
             } else {
                 await startConversation(currentMsg)
             }
-
         } catch (err) {
             console.log(err);
         } finally {

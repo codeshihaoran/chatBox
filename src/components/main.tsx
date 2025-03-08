@@ -3,8 +3,6 @@ import { useDispatch, useSelector } from "react-redux";
 import 'highlight.js/styles/default.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy, faRedo } from '@fortawesome/free-solid-svg-icons';
-
-import { selectUploadFileInfo } from "@/store/modules/fileInfo";
 import aiImage from '@/assets/imgs/ai.jpg';
 import { selectContent } from "@/store/modules/content";
 import { useStartConversation } from "@/service/index";
@@ -13,15 +11,13 @@ import { selectConversationInfo } from "@/store/modules/conversationInfo";
 import { selectConversation } from "@/store/modules/conversation";
 import { setContent } from "@/store/modules/content";
 import { useMarked } from "./marked";
-import { message } from "antd";
+import { message, Spin } from "antd";
 import { client, botId, token } from '../index'
-import { ChatEventType, RoleType, ContentType } from "@coze/api";
+import { ChatEventType, RoleType } from "@coze/api";
 import axios from "axios";
+import { selectSentFiles, selectCurrentSessionId } from "@/store/modules/sentFileInfo";
 
 const Main: React.FC = () => {
-    const fileInfo = useSelector(selectUploadFileInfo)
-    // console.log(fileInfo.fileName);
-
     const { conversation_id } = useSelector(selectConversation)
     const content = useSelector(selectContent);
     const { conversationInfo } = useSelector(selectConversationInfo)
@@ -34,6 +30,9 @@ const Main: React.FC = () => {
     const { msg, response, follow, message_id } = content;
     const startConversation = useStartConversation();
     const startMarked = useMarked()
+
+    const sentFiles = useSelector(selectSentFiles);
+    const currentSessionId = useSelector(selectCurrentSessionId);
 
     useEffect(() => {
         setMarkRes('')
@@ -148,7 +147,23 @@ const Main: React.FC = () => {
             {/* 历史记录区域 */}
             {conversationInfo && conversationInfo.map((item, index) => (
                 <div className="main" key={index}>
-                    {item.userContent && <div className="user">{item.userContent}</div>}
+                    {item.userContent && <div className="user">
+                        {sentFiles
+                            .filter(file => file.session_id === item.meta_id)
+                            .map(file => (
+                                file.fileType === 'image' ? (
+                                    <div key={file.file_id} className="uploaded-image">
+                                        <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '300px' }} />
+                                    </div>
+                                ) : (
+                                    <div key={file.file_id} className="uploaded-file">
+                                        <a href="#">📎 {file.fileName}</a>
+                                    </div>
+                                )
+                            ))
+                        }
+                        {item.userContent}
+                    </div>}
                     {item.assistantContent && (
                         <div className="ai">
                             <img src={aiImage} alt="" />
@@ -157,24 +172,34 @@ const Main: React.FC = () => {
                     )}
                 </div>
             ))}
-            {/* 流式输出区域以及渲染follow区域 */}
+
+            {/* 流式输出区域 */}
             <div className="main">
                 {localMsg && <div className="user">
-                    {fileInfo.map(item => (
-                        item.fileType === 'image' ? (<div className="uploaded-image">
-                            <img src={item.fileBase} alt={item.fileName} style={{ maxWidth: '200px' }} />
-                        </div>) : (<div className="uploaded-file">
-                            <a href="#">📎 {item.fileName}</a>
-                        </div>)
-                    ))}
+                    {sentFiles
+                        .filter(file => file.session_id === currentSessionId)
+                        .map(file => (
+                            file.fileType === 'image' ? (
+                                <div key={file.file_id} className="uploaded-image">
+                                    <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '200px' }} />
+                                </div>
+                            ) : (
+                                <div key={file.file_id} className="uploaded-file">
+                                    <a href="#">📎 {file.fileName}</a>
+                                </div>
+                            )
+                        ))
+                    }
                     {localMsg}
                 </div>}
-                {markRes && (
-                    <div className="ai">
-                        <img src={aiImage} alt="" />
-                        <div className="test" dangerouslySetInnerHTML={{ __html: markRes }} />
-                    </div>
-                )}
+                <div className="ai">
+                    {markRes ? (
+                        <div><img src={aiImage} alt="" />
+                            <div className="test" dangerouslySetInnerHTML={{ __html: markRes }} /></div>) : (<div>
+                                {msg ? <Spin /> : null}
+                            </div>
+                    )}
+                </div>
                 {markRes && (
                     <div className="icons">
                         <button className="copy-btn" onClick={handleCopyText}>

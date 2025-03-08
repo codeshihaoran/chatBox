@@ -12,9 +12,7 @@ export const useStartConversation = () => {
     const dispatch = useDispatch()
     const { conversation_id } = useSelector(selectConversation)
     const startMarked = useMarked()
-    const startConversation = async (message: string, contentType: string = 'text', mediaContent: any = null) => {
-        console.log("111", typeof contentType);
-
+    const startConversation = async (message: string, contentType: string = 'text', mediaContent: any = null, metaData: string = '') => {
         // 这里先获取消息列表
         if (conversation_id) {
             try {
@@ -33,12 +31,15 @@ export const useStartConversation = () => {
                     data.data.reverse()
                     const newData = []
                     for (let i = 0; i < data.data.length; i += 2) {
-                        const userMessage = data.data[i]
+                        const metaInfo = data.data[i].meta_data
+                        const userMessage = metaInfo.content
+                        const metaId = metaInfo.id
                         const assistantMessage = data.data[i + 1]
                         const aiContent = await startMarked(assistantMessage.content)
                         const newItem = {
-                            userContent: userMessage?.content || '',
-                            assistantContent: aiContent || ''
+                            userContent: userMessage || '',
+                            assistantContent: aiContent || '',
+                            meta_id: metaId
                         };
                         newData.push(newItem)
                     }
@@ -48,18 +49,21 @@ export const useStartConversation = () => {
                 console.log(err);
             }
         }
-
+        const meta_data: Record<string, string> = {
+            id: metaData,
+            content: message
+        }
         const additionalMsg: any[] = [{
             role: RoleType.User,
             content: contentType === 'text' ? message : mediaContent,
             content_type: contentType,
+            meta_data: meta_data
         }]
         const stream = await client.chat.stream({
             bot_id: botId!,
             conversation_id: conversation_id!,
-            additional_messages: additionalMsg
+            additional_messages: additionalMsg,
         });
-        console.log(stream);
 
         let completeResponse = '';
         let followArr: string[] = [];
@@ -78,4 +82,4 @@ export const useStartConversation = () => {
     };
 
     return startConversation;
-};
+}

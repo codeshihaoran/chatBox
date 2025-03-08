@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 type Message = {
     userContent: string;
     assistantContent: string;
+    meta_id: string
 };
 
 export const conversationInfoSlice = createSlice({
