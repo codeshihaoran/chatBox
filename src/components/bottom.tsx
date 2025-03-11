@@ -238,10 +238,10 @@ const Bottom: React.FC = () => {
                 <div className="chat-send">
                     <div className="chat-file">
                         <button onClick={() => handleFileClick(inputRef)}>
-                            <FontAwesomeIcon icon={faFolderPlus} style={{ fontSize: "24px" }} />
+                            <FontAwesomeIcon icon={faFolderPlus} style={{ fontSize: "24px", color: "#B0B0B0" }} />
                         </button>
                         <button onClick={() => handleFileClick(imageInputRef)}>
-                            <FontAwesomeIcon icon={faCameraAlt} style={{ fontSize: "24px" }} />
+                            <FontAwesomeIcon icon={faCameraAlt} style={{ fontSize: "24px", color: "#B0B0B0" }} />
                         </button>
                         <input
                             type="file"
@@ -264,6 +264,9 @@ const Bottom: React.FC = () => {
                         className="chat-send-button"
                         onClick={handleClick}
                         disabled={loading}
+                        style={{
+                            backgroundColor: "#4A90E2"
+                        }}
                     >
                         {loading ? '发送中...' : '发送'}
                     </Button>

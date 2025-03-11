@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import 'highlight.js/styles/default.css';
+import 'highlight.js/styles/atom-one-dark.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy, faRedo } from '@fortawesome/free-solid-svg-icons';
-import aiImage from '@/assets/imgs/ai.jpg';
 import { selectContent } from "@/store/modules/content";
 import { useStartConversation } from "@/service/index";
 import { setLoading } from "@/store/modules/loading";
@@ -153,7 +152,7 @@ const Main: React.FC = () => {
                             .map(file => (
                                 file.fileType === 'image' ? (
                                     <div key={file.file_id} className="uploaded-image">
-                                        <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '300px' }} />
+                                        <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '300px', maxHeight: '300px' }} />
                                     </div>
                                 ) : (
                                     <div key={file.file_id} className="uploaded-file">
@@ -166,7 +165,6 @@ const Main: React.FC = () => {
                     </div>}
                     {item.assistantContent && (
                         <div className="ai">
-                            <img src={aiImage} alt="" />
                             <div className="test" dangerouslySetInnerHTML={{ __html: item.assistantContent }} />
                         </div>
                     )}
@@ -181,7 +179,7 @@ const Main: React.FC = () => {
                         .map(file => (
                             file.fileType === 'image' ? (
                                 <div key={file.file_id} className="uploaded-image">
-                                    <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '200px' }} />
+                                    <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '300px', maxHeight: '300px' }} />
                                 </div>
                             ) : (
                                 <div key={file.file_id} className="uploaded-file">
@@ -194,7 +192,7 @@ const Main: React.FC = () => {
                 </div>}
                 <div className="ai">
                     {markRes ? (
-                        <div><img src={aiImage} alt="" />
+                        <div>
                             <div className="test" dangerouslySetInnerHTML={{ __html: markRes }} /></div>) : (<div>
                                 {msg ? <Spin /> : null}
                             </div>
@@ -203,10 +201,10 @@ const Main: React.FC = () => {
                 {markRes && (
                     <div className="icons">
                         <button className="copy-btn" onClick={handleCopyText}>
-                            <FontAwesomeIcon icon={faCopy} style={{ fontSize: "14px" }} />
+                            <FontAwesomeIcon icon={faCopy} style={{ color: "#B0B0B0", fontSize: "14px" }} />
                         </button>
                         <button onClick={handleRegenerate}>
-                            <FontAwesomeIcon icon={faRedo} style={{ fontSize: "14px" }} />
+                            <FontAwesomeIcon icon={faRedo} style={{ color: "#B0B0B0", fontSize: "14px" }} />
                         </button>
                     </div>
                 )}

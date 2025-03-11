@@ -12,10 +12,9 @@
 }
 
 .header {
-    text-align: center;
+    padding: 0;
+    width: 100%;
     color: #333;
-    background-color: #FFFFFF;
-    flex: 0 0 15%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -24,8 +23,31 @@
 
 .content {
     flex-grow: 1;
-    background-color: #FFFFFF;
     overflow-y: auto;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1B1B1B;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #2D2D2D;
+    border-radius: 3px;
+}
+
+.chat-navbar {
+    width: 100%;
+}
+
+.chat-navbar-btn {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
 }
 
 .chat-main {
@@ -45,8 +67,9 @@
 
 .user {
     align-self: flex-end;
-    background-color: #007bff;
-    color: white;
+    background-color: #2A2A2A;
+    font-weight: 600;
+    color: #E0E0E0;
     padding: 10px 15px;
     border-radius: 15px;
     max-width: 100%;
@@ -57,8 +80,13 @@
 .ai {
     align-self: flex-start;
     padding: 0px 5px;
+    font-weight: 600;
     border-radius: 15px;
     max-width: 100%;
+}
+
+.ai .test {
+    color: #E0E0E0;
 }
 
 .main .icons {
@@ -82,8 +110,8 @@ img {
 
 .follow_up {
     align-self: flex-start;
-    background-color: #f1f1f1;
-    color: #333;
+    background-color: #2a2a2a;
+    color: #ffffff;
     padding: 10px 15px;
     border-radius: 15px;
     max-width: 100%;
@@ -97,7 +125,7 @@ img {
 }
 
 .follow_up a {
-    color: #333;
+    color: #C0C0C0;
 }
 
 .follow_up p::after {
@@ -126,10 +154,8 @@ img {
 
 
 .sider {
-    background-color: #F0F0F0;
     flex-grow: 1;
     text-align: center;
-    color: #333;
 }
 
 .footer {
@@ -142,7 +168,6 @@ img {
     flex-shrink: 0;
     position: sticky;
     bottom: 0;
-    background-color: #FFFFFF;
     z-index: 10;
 }
 
@@ -151,8 +176,8 @@ img {
     width: 50%;
     justify-content: center;
     padding: 8px;
-    background-color: #F0F0F0;
-    border: 1px solid #D9D9D9;
+    background-color: #2a2a2a;
+    border: 1px solid #444;
     border-radius: 20px;
     height: 100%;
     flex-direction: column;
@@ -200,7 +225,7 @@ img {
 
 /* 文件容器样式 */
 .uploaded-file-container {
-    background-color: #E8E8E8;
+    background-color: #2a2a2a;
     padding: 8px 12px;
     border-radius: 8px;
     display: flex;
@@ -216,6 +241,7 @@ img {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 150px;
+    color: #ffffff;
 }
 
 /* 删除按钮样式 */
@@ -263,6 +289,7 @@ img {
     height: 40px;
     resize: none;
     margin-right: 10px;
+    color: #ffffff;
 }
 
 .chat-send {
@@ -335,10 +362,10 @@ img {
 }
 
 .hljs {
-    background-color: #f5f5f5;
-    color: #333;
+    background-color: #2d2d2d;
+    color: #e6e6e6;
     padding: 15px;
-    border: 2px solid #ddd;
+    border: 2px solid #444;
     border-radius: 5px;
     font-size: 14px;
     font-family: 'Courier New', Courier, monospace;
@@ -348,12 +375,13 @@ img {
     position: relative;
     height: 30px;
     padding: 5px;
-    border-bottom: 2px solid #dcdcdc;
+    border-bottom: 2px solid #444;
     margin-bottom: 10px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     border-radius: 5px;
+
 }
 
 .hljs .hljs-span {
@@ -363,7 +391,7 @@ img {
     transform: translateY(-50%);
     font-size: 14px;
     font-weight: bold;
-    color: #333;
+    color: #e6e6e6;
     text-transform: capitalize;
 }
 
@@ -387,24 +415,23 @@ img {
 }
 
 .hljs .hljs-btn:active {
-    background-color: #004085;
+    background-color: #B0B0B0;
 }
 
 .hljs-comment {
-    color: #6a737d;
+    color: #999;
 }
 
 .hljs-keyword {
-    color: #d73a49;
+    color: #ff7b72;
 }
 
 .hljs-string {
-    color: #032f62;
+    color: #a5d6ff;
 }
 
 .hljs-number {
-    color: #005cc5;
-
+    color: #79c0ff;
 }
 
 .uploaded-image img {

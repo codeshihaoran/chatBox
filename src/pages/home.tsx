@@ -1,5 +1,5 @@
-import React, { useEffect } from "react";
-import { Flex, Layout, message } from "antd";
+import React, { useEffect, useState } from "react";
+import { Flex, Layout, message, Menu } from "antd";
 import { useDispatch } from "react-redux";
 const { Header, Sider, Content, Footer } = Layout
 
@@ -10,10 +10,12 @@ import Navbar from "@/components/navbar";
 import Main from "@/components/main";
 import Bottom from "@/components/bottom";
 import axios from "axios";
+import { UploadOutlined, UserOutlined, VideoCameraOutlined } from "@ant-design/icons";
 
 
 const Home: React.FC = () => {
     const dispatch = useDispatch()
+    const [collapsed, setCollapsed] = useState(false)
     useEffect(() => {
         const handleCopyClick = async (e: MouseEvent) => {
             const target = e.target as HTMLElement;
@@ -56,20 +58,61 @@ const Home: React.FC = () => {
         }
         getConversationId()
     }, [])
+
+    const handleChangeClick = (data: boolean) => {
+        setCollapsed(data)
+    }
     return (
         <Flex gap="middle" wrap>
             <Layout className="layout">
-                <Sider className="sider">
-                    Sider
+                <Sider
+                    className="sider"
+                    trigger={null}
+                    collapsed={collapsed}
+                    style={{ background: '#121212' }}
+                >
+                    <Menu
+                        mode="inline"
+                        style={{
+                            background: '#121212',
+                            color: '#ffffff'
+                        }}
+                        items={[
+                            {
+                                key: '1',
+                                icon: <UserOutlined style={{ color: '#ffffff' }} />,
+                                label: <span style={{ color: '#ffffff' }}>nav 1</span>
+                            },
+                            {
+                                key: '2',
+                                icon: <VideoCameraOutlined style={{ color: '#ffffff' }} />,
+                                label: <span style={{ color: '#ffffff' }}>nav 2</span>
+                            },
+                            {
+                                key: '3',
+                                icon: <UploadOutlined style={{ color: '#ffffff' }} />,
+                                label: <span style={{ color: '#ffffff' }}>nav 3</span>
+                            }
+                        ]}
+                    />
                 </Sider>
-                <Layout>
-                    <Header className="header">
-                        <Navbar />
+
+                <Layout style={{ background: '#1B1B1B', color: '#ffffff' }}>
+                    <Header className="header" style={{ background: '#1B1B1B' }}>
+                        <Navbar
+                            sendStatusToHome={handleChangeClick}
+                            status={collapsed}
+                        />
                     </Header>
-                    <Content className="content">
+                    <Content className="content" style={{ background: '#1B1B1B' }}>
                         <Main />
                     </Content>
-                    <Footer className="footer">
+                    <Footer className="footer"
+                        style={{
+                            background: "#1B1B1B",
+                            color: "rgba(255,255,255,0.7)",
+                        }}
+                    >
                         <Bottom />
                     </Footer>
                 </Layout>
