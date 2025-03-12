@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Flex, Layout, message, Menu } from "antd";
+import { Flex, Layout, message, Menu, Button } from "antd";
 import { useDispatch } from "react-redux";
 const { Header, Sider, Content, Footer } = Layout
 
@@ -10,7 +10,7 @@ import Navbar from "@/components/navbar";
 import Main from "@/components/main";
 import Bottom from "@/components/bottom";
 import axios from "axios";
-import { UploadOutlined, UserOutlined, VideoCameraOutlined } from "@ant-design/icons";
+import { UploadOutlined, UserOutlined, VideoCameraOutlined, FormOutlined, SearchOutlined } from "@ant-design/icons";
 
 
 const Home: React.FC = () => {
@@ -71,6 +71,28 @@ const Home: React.FC = () => {
                     collapsed={collapsed}
                     style={{ background: '#121212' }}
                 >
+                    <div className="sider-top">
+                        <Button
+                            type="text"
+                            className="sider-btn"
+                            icon={<SearchOutlined style={{ color: '#B0B0B0', fontSize: '20px' }} />}
+                            style={{
+                                width: 48,
+                                height: 48,
+                                display: collapsed ? "none" : "block"
+                            }}
+                        ></Button>
+                        <Button
+                            type="text"
+                            className="sider-btn"
+                            icon={<FormOutlined style={{ color: '#B0B0B0', fontSize: '20px' }} />}
+                            style={{
+                                width: 48,
+                                height: 48,
+                                display: collapsed ? "none" : "block"
+                            }}
+                        ></Button>
+                    </div>
                     <Menu
                         mode="inline"
                         style={{

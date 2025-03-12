@@ -16,14 +16,14 @@ const Navbar: React.FC<NavbarProps> = ({ sendStatusToHome, status }) => {
             <div className="chat-navbar-btn">
                 <Button
                     type="text"
+                    className="collapsed-btn"
                     icon={status
-                        ? <MenuUnfoldOutlined style={{ color: "#B0B0B0", fontSize: "18px" }} />
-                        : <MenuFoldOutlined style={{ color: "#B0B0B0", fontSize: "18px" }} />}
+                        ? <MenuUnfoldOutlined style={{ color: "#B0B0B0", fontSize: "20px" }} />
+                        : <MenuFoldOutlined style={{ color: "#B0B0B0", fontSize: "20px" }} />}
                     onClick={() => sendStatusToHome(!status)}
                     style={{
-                        fontSize: '16px',
-                        width: 64,
-                        height: 64
+                        width: 48,
+                        height: 48,
                     }}
                 >
                 </Button>
