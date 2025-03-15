@@ -6,8 +6,8 @@ import { faCopy, faRedo } from '@fortawesome/free-solid-svg-icons';
 import { selectContent } from "@/store/modules/content";
 import { useStartConversation } from "@/service/index";
 import { setLoading } from "@/store/modules/loading";
-import { selectConversationInfo } from "@/store/modules/conversationInfo";
-import { selectConversation } from "@/store/modules/conversation";
+import { selectConversationInfo, setConversationInfo } from "@/store/modules/conversationInfo";
+import { selectConversationId } from "@/store/modules/conversation";
 import { setContent } from "@/store/modules/content";
 import { useMarked } from "./marked";
 import { message, Spin } from "antd";
@@ -17,7 +17,7 @@ import axios from "axios";
 import { selectSentFiles, selectCurrentSessionId } from "@/store/modules/sentFileInfo";
 
 const Main: React.FC = () => {
-    const { conversation_id } = useSelector(selectConversation)
+    const currentConversationId = useSelector(selectConversationId)
     const content = useSelector(selectContent);
     const { conversationInfo } = useSelector(selectConversationInfo)
     const dispatch = useDispatch();
@@ -32,6 +32,45 @@ const Main: React.FC = () => {
 
     const sentFiles = useSelector(selectSentFiles);
     const currentSessionId = useSelector(selectCurrentSessionId);
+
+    useEffect(() => {
+        const getHistoryInfo = async () => {
+            try {
+                const response = await axios.post('https://api.coze.cn/v1/conversation/message/list',
+                    {},
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            'Content-Type': 'application/json',
+                        },
+                        params: { conversation_id: currentConversationId }
+                    }
+                )
+                const { data } = response
+                if (data.code === 0) {
+                    data.data.reverse()
+                    const newData = []
+                    for (let i = 0; i < data.data.length; i += 2) {
+                        const metaInfo = data.data[i].meta_data
+                        const userMessage = metaInfo.content
+                        const metaId = metaInfo.id
+                        const assistantMessage = data.data[i + 1]
+                        const aiContent = await startMarked(assistantMessage.content)
+                        const newItem = {
+                            userContent: userMessage || '',
+                            assistantContent: aiContent || '',
+                            meta_id: metaId
+                        };
+                        newData.push(newItem)
+                    }
+                    dispatch(setConversationInfo(newData))
+                }
+            } catch (err) {
+                console.log(err);
+            }
+        }
+        getHistoryInfo()
+    }, [currentConversationId])
 
     useEffect(() => {
         setMarkRes('')
@@ -85,7 +124,7 @@ const Main: React.FC = () => {
                         Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
-                    params: { conversation_id, message_id }
+                    params: { currentConversationId, message_id }
                 }
             )
 
@@ -96,7 +135,7 @@ const Main: React.FC = () => {
                         Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
-                    params: { conversation_id }
+                    params: { currentConversationId }
                 }
             )
 
@@ -108,12 +147,12 @@ const Main: React.FC = () => {
                         Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
-                    params: { conversation_id, message_id: userMsgId }
+                    params: { currentConversationId, message_id: userMsgId }
                 }
             )
             const stream = await client.chat.stream({
                 bot_id: botId!,
-                conversation_id: conversation_id!,
+                conversation_id: currentConversationId!,
                 additional_messages: [{
                     role: RoleType.User,
                     content: localMsg,

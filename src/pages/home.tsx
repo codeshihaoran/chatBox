@@ -1,21 +1,37 @@
-import React, { useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import { Flex, Layout, message, Menu, Button } from "antd";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 const { Header, Sider, Content, Footer } = Layout
 
 import { token } from "../index";
-import { setId } from "@/store/modules/conversation";
+import { addConversationContent, selectConversation, setCurrentConversationId, selectConversationId } from "@/store/modules/conversation";
 
 import Navbar from "@/components/navbar";
 import Main from "@/components/main";
 import Bottom from "@/components/bottom";
 import axios from "axios";
-import { UploadOutlined, UserOutlined, VideoCameraOutlined, FormOutlined, SearchOutlined } from "@ant-design/icons";
+import { FormOutlined, MessageOutlined, SearchOutlined } from "@ant-design/icons";
 
+interface MenuItems {
+    key: string,
+    id: string,
+    label: ReactNode
+}
 
 const Home: React.FC = () => {
     const dispatch = useDispatch()
     const [collapsed, setCollapsed] = useState(false)
+    const conversationContent = useSelector(selectConversation)
+    const currentConversationId = useSelector(selectConversationId)
+    console.log("刷新后", currentConversationId);
+
+    const [selectKeys, setSelectKeys] = useState("")
+    const menuItems: MenuItems[] = conversationContent.map((item, index) => ({
+        key: index.toString(),
+        id: item.conversation_id,
+        label: <span style={{ color: '#ffffff' }}>Coze Agent chat</span>,
+        icon: <MessageOutlined style={{ color: '#B0B0B0' }} />
+    }))
     useEffect(() => {
         const handleCopyClick = async (e: MouseEvent) => {
             const target = e.target as HTMLElement;
@@ -44,7 +60,18 @@ const Home: React.FC = () => {
         }
     }, [])
     useEffect(() => {
+        menuItems.forEach(item => {
+            if (item.id === currentConversationId) {
+                setSelectKeys(item.key)
+            }
+        })
+    }, [currentConversationId])
+    useEffect(() => {
         const getConversationId = async () => {
+            const prevConversation = conversationContent[0]
+            if (prevConversation) {
+                return
+            }
             const response = await axios.post('https://api.coze.cn/v1/conversation/create', {}, {
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -53,14 +80,61 @@ const Home: React.FC = () => {
             })
             const { data } = response
             if (data.code === 0) {
-                dispatch(setId(data.data.id))
+                console.log(data.data.id);
+                dispatch(addConversationContent({ conversation_id: data.data.id, value: '' }))
+                dispatch(setCurrentConversationId(data.data.id))
             }
         }
         getConversationId()
     }, [])
-
     const handleChangeClick = (data: boolean) => {
         setCollapsed(data)
+    }
+    const handleSelectClick = (e: any) => {
+        setSelectKeys(e.key)
+        menuItems.forEach(item => {
+            if (item.key === e.key) {
+                dispatch(setCurrentConversationId(item.id))
+            }
+        })
+    }
+
+    const handleCreateClick = async () => {
+        console.log(currentConversationId);
+
+        const prevConversationId = conversationContent[0].conversation_id
+
+        const msgList = await axios.post('https://api.coze.cn/v1/conversation/message/list',
+            {},
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+                params: { conversation_id: prevConversationId }
+            }
+        )
+        const { data } = msgList
+        if (data.data.length === 0) {
+            return
+        }
+        try {
+
+            const response = await axios.post('https://api.coze.cn/v1/conversation/create', {}, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+            const { data } = response
+            if (data.code === 0) {
+                dispatch(addConversationContent({ conversation_id: data.data.id, value: '' }))
+                dispatch(setCurrentConversationId(data.data.id))
+            }
+        } catch (err) {
+            console.log(err);
+        }
+
     }
     return (
         <Flex gap="middle" wrap>
@@ -91,6 +165,8 @@ const Home: React.FC = () => {
                                 height: 48,
                                 display: collapsed ? "none" : "block"
                             }}
+
+                            onClick={handleCreateClick}
                         ></Button>
                     </div>
                     <Menu
@@ -99,23 +175,9 @@ const Home: React.FC = () => {
                             background: '#121212',
                             color: '#ffffff'
                         }}
-                        items={[
-                            {
-                                key: '1',
-                                icon: <UserOutlined style={{ color: '#ffffff' }} />,
-                                label: <span style={{ color: '#ffffff' }}>nav 1</span>
-                            },
-                            {
-                                key: '2',
-                                icon: <VideoCameraOutlined style={{ color: '#ffffff' }} />,
-                                label: <span style={{ color: '#ffffff' }}>nav 2</span>
-                            },
-                            {
-                                key: '3',
-                                icon: <UploadOutlined style={{ color: '#ffffff' }} />,
-                                label: <span style={{ color: '#ffffff' }}>nav 3</span>
-                            }
-                        ]}
+                        onClick={handleSelectClick}
+                        items={menuItems}
+                        selectedKeys={[selectKeys]}
                     />
                 </Sider>
 

@@ -7,17 +7,25 @@ interface SentFileInfo {
     fileBase: string
     session_id: string
 }
-
+const getStoredFileInfo = () => {
+    try {
+        const stored = localStorage.getItem("sentFileInfo")
+        return stored ? JSON.parse(stored) : []
+    } catch {
+        return []
+    }
+}
 export const sentFileInfoSlice = createSlice({
     name: 'sentFileInfo',
     initialState: {
-        sentFiles: [] as SentFileInfo[],
+        sentFiles: getStoredFileInfo(),
         currentSessionId: Date.now().toString()
     },
     reducers: {
         // 添加已发送的文件
         addSentFile: (state, action) => {
             state.sentFiles.push(action.payload)
+            localStorage.setItem("sentFileInfo", JSON.stringify(state.sentFiles))
         },
         // 更新当前会话ID
         updateSessionId: (state) => {
