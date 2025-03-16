@@ -10,8 +10,10 @@ import Navbar from "@/components/navbar";
 import Main from "@/components/main";
 import Bottom from "@/components/bottom";
 import axios from "axios";
-import { FormOutlined, MessageOutlined, SearchOutlined } from "@ant-design/icons";
+import { FormOutlined, GithubOutlined, MessageOutlined, SearchOutlined } from "@ant-design/icons";
 
+import { Coze } from '@lobehub/icons';
+import { Flexbox } from 'react-layout-kit';
 interface MenuItems {
     key: string,
     id: string,
@@ -143,7 +145,11 @@ const Home: React.FC = () => {
                     className="sider"
                     trigger={null}
                     collapsed={collapsed}
-                    style={{ background: '#121212' }}
+                    style={{
+                        background: '#121212',
+                        position: 'relative',  // 添加相对定位
+                        height: '100vh'        // 确保Sider占满整个视口高度
+                    }}
                 >
                     <div className="sider-top">
                         <Button
@@ -168,17 +174,41 @@ const Home: React.FC = () => {
 
                             onClick={handleCreateClick}
                         ></Button>
+
                     </div>
+                    {!collapsed && <div className="top-doc">
+                        <a href="https://www.coze.cn/open/docs/guides">
+                            <Coze size={20} style={{ color: '#B0B0B0' }} />
+                            <span className="top-doc-span">探索 Coze</span>
+                        </a>
+                    </div>}
                     <Menu
                         mode="inline"
                         style={{
                             background: '#121212',
-                            color: '#ffffff'
+                            color: '#ffffff',
+                            overflowY: 'auto',
+                            height: 'calc(100vh - 150px)'
                         }}
                         onClick={handleSelectClick}
                         items={menuItems}
                         selectedKeys={[selectKeys]}
                     />
+                    <div className="sider-bottom" style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        width: '100%',
+                        padding: '16px 0',
+                        background: '#121212',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        borderTop: '1px solid #333'
+                    }}>
+                        <Button
+                            icon={<GithubOutlined style={{ fontSize: '30px' }} />}
+                            onClick={() => window.open('https://github.com/codeshihaoran/chatBox', '_blank')}
+                        ></Button>
+                    </div>
                 </Sider>
 
                 <Layout style={{ background: '#1B1B1B', color: '#ffffff' }}>

@@ -38,6 +38,7 @@
     "@coze/api": "^1.0.11",
     "@fortawesome/free-solid-svg-icons": "^6.7.1",
     "@fortawesome/react-fontawesome": "^0.2.2",
+    "@lobehub/icons": "^1.80.0",
     "@reduxjs/toolkit": "^2.4.0",
     "antd": "^5.22.2",
     "axios": "^1.7.7",
