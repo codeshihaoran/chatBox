@@ -35,7 +35,7 @@ chatBox 是一个用于接入 `Coze API` 的聊天框组件，基于 `React` + `
 
 ### 视频演示
 
-https://github.com/user-attachments/assets/253bcb39-4eda-4ca5-806a-8b655e40bc1a
+https://github.com/user-attachments/assets/4a76c707-8855-42bc-84c2-138d38b43cc3
 
 ## 安装依赖
 ```sh
