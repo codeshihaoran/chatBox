@@ -124,7 +124,7 @@ const Main: React.FC = () => {
                         Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
-                    params: { currentConversationId, message_id }
+                    params: { conversation_id: currentConversationId, message_id }
                 }
             )
 
@@ -135,7 +135,7 @@ const Main: React.FC = () => {
                         Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
-                    params: { currentConversationId }
+                    params: { conversation_id: currentConversationId }
                 }
             )
 
@@ -147,7 +147,7 @@ const Main: React.FC = () => {
                         Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json',
                     },
-                    params: { currentConversationId, message_id: userMsgId }
+                    params: { conversation_id: currentConversationId, message_id: userMsgId }
                 }
             )
             const stream = await client.chat.stream({

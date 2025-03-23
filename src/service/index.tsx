@@ -15,7 +15,6 @@ export const useStartConversation = () => {
     const startMarked = useMarked()
     const startConversation = async (message: string, contentType: string = 'text', mediaContent: any = null, metaData: string = '') => {
         // 这里先获取消息列表
-        console.log("发送消息时", currentConversationId);
         if (currentConversationId) {
             try {
                 const response = await axios.post('https://api.coze.cn/v1/conversation/message/list',
@@ -78,7 +77,9 @@ export const useStartConversation = () => {
             if (part.event === ChatEventType.CONVERSATION_MESSAGE_COMPLETED && part.data.type === "follow_up") {
                 followArr = [...followArr, part.data.content];
             }
-
+            if (part.event === ChatEventType.CONVERSATION_CHAT_COMPLETED) {
+                console.log(111);
+            }
             dispatch(setContent({ msg: message, response: completeResponse, follow: followArr, message_id: messageId }));
         }
     };
