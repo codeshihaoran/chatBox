@@ -10,6 +10,33 @@ chatBox 是一个用于接入 `Coze API` 的聊天框组件，基于 `React` + `
 
 在使用该项目之前，你需要配置个人的访问令牌，并将其保存在 `.env` 文件中。
 
+
+## 功能需求图
+
+![项目图片](src/assets/mindMap.jpg)
+
+## 功能演示
+
+### 智能对话能力
+![项目图片](src/assets/dialog.jpg)
+
+### 多模态内容支持
+
+![项目图片](src/assets/multimodal.jpg)
+
+### 响应内容支持
+
+![项目图片](src/assets/markdown.jpg)
+![项目图片](src/assets/historyChat.jpg)
+
+### 会话历史保存
+
+![项目图片](src/assets/historyConversation.jpg)
+
+### 视频演示
+
+https://github.com/user-attachments/assets/253bcb39-4eda-4ca5-806a-8b655e40bc1a
+
 ## 安装依赖
 ```sh
 npm install
@@ -23,10 +50,5 @@ npm run dev
 ```sh
 npm run build
 ```
-
-## 功能需求图
-
-![项目图片](src/assets/mindMap.jpg)
-
 
 
