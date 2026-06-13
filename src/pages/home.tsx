@@ -1,6 +1,7 @@
 ﻿import React, { ReactNode, useEffect, useState } from "react";
 import { Flex, Layout, message, Menu, Button, Input } from "antd";
 import { useDispatch, useSelector } from "react-redux";
+import { DeleteOutlined } from "@ant-design/icons";
 const { Header, Sider, Content, Footer } = Layout
 
 import { token } from "../index";
@@ -46,7 +47,45 @@ const Home: React.FC = () => {
         .map((item, index) => ({
             key: index.toString(),
             id: item.conversation_id,
-            label: <span style={{ color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px', display: 'block', textAlign: 'left' }}>{item.value ? item.value.substring(0, 20) + (item.value.length > 20 ? '...' : '') : '\u65b0\u5bf9\u8bdd'}</span>,
+            label: (
+                <div 
+                    style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        width: '100%'
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <span style={{ 
+                        color: '#ffffff', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis', 
+                        whiteSpace: 'nowrap', 
+                        maxWidth: '100px', 
+                        display: 'block', 
+                        textAlign: 'left',
+                        flex: 1
+                    }}>
+                        {item.value ? item.value.substring(0, 20) + (item.value.length > 20 ? '...' : '') : '新对话'}
+                    </span>
+                    <Button
+                        type="text"
+                        size="small"
+                        icon={<DeleteOutlined style={{ color: '#B0B0B0', fontSize: '14px' }} />}
+                        style={{ 
+                            marginLeft: '8px',
+                            minWidth: '24px',
+                            height: '24px',
+                            padding: 0
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteConversation(item.conversation_id);
+                        }}
+                    />
+                </div>
+            ),
             icon: <MessageOutlined style={{ color: '#B0B0B0' }} />
         }))
     useEffect(() => {
@@ -114,6 +153,11 @@ const Home: React.FC = () => {
                 dispatch(setCurrentConversationId(item.id))
             }
         })
+    }
+
+    const handleDeleteConversation = (conversationId: string) => {
+        dispatch(deleteConversationContent(conversationId))
+        message.success('对话已删除')
     }
 
     const handleCreateClick = async () => {
