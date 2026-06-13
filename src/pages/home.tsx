@@ -198,51 +198,53 @@ const Home: React.FC = () => {
                         ></Button>
 
                     </div>
-                    {!collapsed && searchVisible && (
-                        <div style={{ padding: '0 8px', marginBottom: 8 }}>
-                            <Input
-                                placeholder="请输入内容..."
-                                value={searchText}
-                                onChange={e => setSearchText(e.target.value)}
-                                style={{
-                                    background: '#888',
-                                    border: '1px solid #333',
-                                    color: '#fff',
-                                    borderRadius: 6,
-                                    width: '100%',
-                                }}
-                                autoFocus
-                                allowClear
-                            />
-                        </div>
-                    )}
-                    {!collapsed && <div className="top-doc">
-                        <a href="https://www.coze.cn/open/docs/guides">
-                            <Coze size={20} style={{ color: '#B0B0B0' }} />
-                            <span className="top-doc-span">探索 Coze</span>
-                        </a>
-                    </div>}
-                    <Menu
-                        mode="inline"
-                        style={{
-                            background: '#121212',
-                            color: '#ffffff',
-                            overflowY: 'auto',
-                            flex: 1,
-                            minHeight: 0
-                        }}
-                        onClick={handleSelectClick}
-                        items={menuItems}
-                        selectedKeys={[selectKeys]}
-                    />
-                    <div className="sider-bottom" style={{
-                        width: '100%',
-                        padding: '16px 0',
-                        background: '#121212',
+                    <div style={{
+                        flex: 1,
+                        minHeight: 0,
                         display: 'flex',
-                        justifyContent: 'center',
-                        borderTop: '1px solid #333'
+                        flexDirection: 'column',
+                        overflow: 'hidden',
+                        maxHeight: 'calc(100vh - 128px)'
                     }}>
+                        {!collapsed && searchVisible && (
+                            <div style={{ padding: '0 8px', marginBottom: 8 }}>
+                                <Input
+                                    placeholder="请输入内容..."
+                                    value={searchText}
+                                    onChange={e => setSearchText(e.target.value)}
+                                    style={{
+                                        background: '#888',
+                                        border: '1px solid #333',
+                                        color: '#fff',
+                                        borderRadius: 6,
+                                        width: '100%',
+                                    }}
+                                    autoFocus
+                                    allowClear
+                                />
+                            </div>
+                        )}
+                        {!collapsed && <div className="top-doc">
+                            <a href="https://www.coze.cn/open/docs/guides">
+                                <Coze size={20} style={{ color: '#B0B0B0' }} />
+                                <span className="top-doc-span">探索 Coze</span>
+                            </a>
+                        </div>}
+                        <Menu
+                            mode="inline"
+                            style={{
+                                background: '#121212',
+                                color: '#ffffff',
+                                overflowY: 'auto',
+                                flex: 1,
+                                minHeight: 0
+                            }}
+                            onClick={handleSelectClick}
+                            items={menuItems}
+                            selectedKeys={[selectKeys]}
+                        />
+                    </div>
+                    <div className="sider-bottom">
                         <Button
                             icon={<GithubOutlined style={{ fontSize: '30px' }} />}
                             onClick={() => window.open('https://github.com/codeshihaoran/chatBox', '_blank')}
