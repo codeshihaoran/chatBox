@@ -7,14 +7,18 @@ export const useMarked = () => {
         const parser = new DOMParser();
         const doc = parser.parseFromString(markResponse, 'text/html');
         const codeBlocks = doc.querySelectorAll('pre > code');
-        const aElement = doc.querySelector("a")
-        if (aElement) {
+        // 遍历所有链接，将图片链接替换为 <img> 标签
+        const aElements = doc.querySelectorAll("a")
+        aElements.forEach(aElement => {
             const link = aElement.href
-            const imgElement = doc.createElement("img")
-            imgElement.src = link
-            imgElement.classList.add('generate-img')
-            aElement.parentNode?.replaceChild(imgElement, aElement)
-        }
+            // 判断是否为常见图片格式链接
+            if (/\.(png|jpg|jpeg|gif|webp|bmp|svg)(\?.*)?$/i.test(link)) {
+                const imgElement = doc.createElement("img")
+                imgElement.src = link
+                imgElement.classList.add('generate-img')
+                aElement.parentNode?.replaceChild(imgElement, aElement)
+            }
+        })
         codeBlocks.forEach((block) => {
             const codeContent = block.textContent || '';
             const languageMatch = block.className.match(/language-(\w+)/);

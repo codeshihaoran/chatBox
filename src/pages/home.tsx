@@ -4,7 +4,11 @@ import { useDispatch, useSelector } from "react-redux";
 const { Header, Sider, Content, Footer } = Layout
 
 import { token } from "../index";
-import { addConversationContent, selectConversation, setCurrentConversationId, selectConversationId } from "@/store/modules/conversation";
+import { addConversationContent, selectConversation, setCurrentConversationId, selectConversationId, deleteConversationContent } from "@/store/modules/conversation";
+import { selectConversationInfo } from "@/store/modules/conversationInfo";
+import { selectContent } from "@/store/modules/content";
+import { selectLoading } from "@/store/modules/loading";
+
 
 import Navbar from "@/components/navbar";
 import Main from "@/components/main";
@@ -27,11 +31,17 @@ const Home: React.FC = () => {
     const currentConversationId = useSelector(selectConversationId)
     console.log("刷新后", currentConversationId);
 
-    const [selectKeys, setSelectKeys] = useState("")
+    
+    const conversationInfo = useSelector(selectConversationInfo);
+    const content = useSelector(selectContent);
+    const currentConv = conversationContent.find(c => c.conversation_id === currentConversationId);
+    const isEmptyConversation = currentConv && !currentConv.value && conversationInfo.conversationInfo.length === 0 && !content.msg && !content.response;
+
+const [selectKeys, setSelectKeys] = useState("")
     const menuItems: MenuItems[] = conversationContent.map((item, index) => ({
         key: index.toString(),
         id: item.conversation_id,
-        label: <span style={{ color: '#ffffff' }}>Coze Agent chat</span>,
+        label: <span style={{ color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px', display: 'block', textAlign: 'left' }}>{item.value ? item.value.substring(0, 20) + (item.value.length > 20 ? '...' : '') : '\u65b0\u5bf9\u8bdd'}</span>,
         icon: <MessageOutlined style={{ color: '#B0B0B0' }} />
     }))
     useEffect(() => {
@@ -218,20 +228,37 @@ const Home: React.FC = () => {
                             status={collapsed}
                         />
                     </Header>
-                    <Content className="content" style={{ background: '#1B1B1B' }}>
-                        <Main />
-                    </Content>
-                    <Footer className="footer"
-                        style={{
-                            background: "#1B1B1B",
-                            color: "rgba(255,255,255,0.7)",
-                        }}
-                    >
-                        <Bottom />
-                    </Footer>
+                    {isEmptyConversation ? (
+                        <Content className="content" style={{
+                            background: '#1B1B1B',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            overflow: 'hidden'
+                        }}>
+                            <div className="empty-chat-prompt">你在忙什么？有什么问题需要解决吗？</div>
+                            <Bottom />
+                        </Content>
+                    ) : (
+                        <>
+                            <Content className="content" style={{ background: '#1B1B1B' }}>
+                                <Main />
+                            </Content>
+                            <Footer className="footer"
+                                style={{
+                                    background: "#1B1B1B",
+                                    color: "rgba(255,255,255,0.7)",
+                                }}
+                            >
+                                <Bottom />
+                            </Footer>
+                        </>
+                    )}
                 </Layout>
             </Layout>
         </Flex>
     )
 }
 export default Home
+
