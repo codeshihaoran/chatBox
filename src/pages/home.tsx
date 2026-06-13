@@ -1,5 +1,5 @@
-import React, { ReactNode, useEffect, useState } from "react";
-import { Flex, Layout, message, Menu, Button } from "antd";
+﻿import React, { ReactNode, useEffect, useState } from "react";
+import { Flex, Layout, message, Menu, Button, Input } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 const { Header, Sider, Content, Footer } = Layout
 
@@ -7,7 +7,6 @@ import { token } from "../index";
 import { addConversationContent, selectConversation, setCurrentConversationId, selectConversationId, deleteConversationContent } from "@/store/modules/conversation";
 import { selectConversationInfo } from "@/store/modules/conversationInfo";
 import { selectContent } from "@/store/modules/content";
-import { selectLoading } from "@/store/modules/loading";
 
 
 import Navbar from "@/components/navbar";
@@ -17,7 +16,6 @@ import axios from "axios";
 import { FormOutlined, GithubOutlined, MessageOutlined, SearchOutlined } from "@ant-design/icons";
 
 import { Coze } from '@lobehub/icons';
-import { Flexbox } from 'react-layout-kit';
 interface MenuItems {
     key: string,
     id: string,
@@ -29,7 +27,7 @@ const Home: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false)
     const conversationContent = useSelector(selectConversation)
     const currentConversationId = useSelector(selectConversationId)
-    console.log("刷新后", currentConversationId);
+    console.log(currentConversationId);
 
     
     const conversationInfo = useSelector(selectConversationInfo);
@@ -38,7 +36,14 @@ const Home: React.FC = () => {
     const isEmptyConversation = currentConv && !currentConv.value && conversationInfo.conversationInfo.length === 0 && !content.msg && !content.response;
 
 const [selectKeys, setSelectKeys] = useState("")
-    const menuItems: MenuItems[] = conversationContent.map((item, index) => ({
+const [searchVisible, setSearchVisible] = useState(false)
+const [searchText, setSearchText] = useState("")
+    const menuItems: MenuItems[] = conversationContent
+        .filter(item => {
+            if (!searchVisible || !searchText) return true
+            return item.value && item.value.toLowerCase().includes(searchText.toLowerCase())
+        })
+        .map((item, index) => ({
         key: index.toString(),
         id: item.conversation_id,
         label: <span style={{ color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px', display: 'block', textAlign: 'left' }}>{item.value ? item.value.substring(0, 20) + (item.value.length > 20 ? '...' : '') : '\u65b0\u5bf9\u8bdd'}</span>,
@@ -47,10 +52,9 @@ const [selectKeys, setSelectKeys] = useState("")
     useEffect(() => {
         const handleCopyClick = async (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            // 确保点击的是带 hljs-btn 按钮
+
             if (target && target.classList.contains('hljs-btn')) {
                 const codeBlock = target.closest('pre > code');
-                // 提取纯文本
                 if (codeBlock) {
                     const pureText = Array.from(codeBlock.childNodes)
                         .filter(node => !(node as HTMLElement).classList?.contains('hljs-div'))
@@ -65,19 +69,20 @@ const [selectKeys, setSelectKeys] = useState("")
                 }
             }
         };
-        // 添加用户点击页面监听器
+
         document.addEventListener('click', handleCopyClick)
         return () => {
             document.removeEventListener('click', handleCopyClick)
         }
     }, [])
     useEffect(() => {
+        if (!currentConversationId) return
         menuItems.forEach(item => {
             if (item.id === currentConversationId) {
                 setSelectKeys(item.key)
             }
         })
-    }, [currentConversationId])
+    }, [currentConversationId, searchVisible, searchText])
     useEffect(() => {
         const getConversationId = async () => {
             const prevConversation = conversationContent[0]
@@ -157,8 +162,8 @@ const [selectKeys, setSelectKeys] = useState("")
                     collapsed={collapsed}
                     style={{
                         background: '#121212',
-                        position: 'relative',  // 添加相对定位
-                        height: '100vh'        // 确保Sider占满整个视口高度
+                        position: 'relative', 
+                        height: '100vh'       
                     }}
                 >
                     <div className="sider-top">
@@ -170,6 +175,10 @@ const [selectKeys, setSelectKeys] = useState("")
                                 width: 48,
                                 height: 48,
                                 display: collapsed ? "none" : "block"
+                            }}
+                            onClick={() => {
+                                setSearchVisible(prev => !prev)
+                                setSearchText("")
                             }}
                         ></Button>
                         <Button
@@ -186,6 +195,24 @@ const [selectKeys, setSelectKeys] = useState("")
                         ></Button>
 
                     </div>
+                    {!collapsed && searchVisible && (
+                        <div style={{ padding: '0 8px', marginBottom: 8 }}>
+                            <Input
+                                placeholder="请输入内容..."
+                                value={searchText}
+                                onChange={e => setSearchText(e.target.value)}
+                                style={{
+                                    background: '#888',
+                                    border: '1px solid #333',
+                                    color: '#fff',
+                                    borderRadius: 6,
+                                    width: '100%',
+                                }}
+                                autoFocus
+                                allowClear
+                            />
+                        </div>
+                    )}
                     {!collapsed && <div className="top-doc">
                         <a href="https://www.coze.cn/open/docs/guides">
                             <Coze size={20} style={{ color: '#B0B0B0' }} />
@@ -261,4 +288,5 @@ const [selectKeys, setSelectKeys] = useState("")
     )
 }
 export default Home
+
 
