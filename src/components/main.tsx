@@ -39,6 +39,7 @@ const Main: React.FC = () => {
     const [localFollow, setLocalFollow] = useState<string[]>([])
     const [localMsg, setLocalMsg] = useState<string>('')
     const [error, setError] = useState<string>('')
+    const [historyLoading, setHistoryLoading] = useState(false);
 
     const { msg, response, follow, message_id } = content;
     const startConversation = useStartConversation();
@@ -54,7 +55,7 @@ const Main: React.FC = () => {
             try {
                 // B7: 切换会话时清空 Redux content 状态
                 dispatch(setContent({ msg: '', response: '', follow: [], message_id: '' }));
-                dispatch(setLoading(true));
+                setHistoryLoading(true);
                 setError('');
 
                 const response = await axios.post('https://api.coze.cn/v1/conversation/message/list',
@@ -100,7 +101,7 @@ const Main: React.FC = () => {
                 }
             } finally {
                 if (!cancelled) {
-                    dispatch(setLoading(false));
+                    setHistoryLoading(false);
                 }
             }
         }
@@ -142,15 +143,15 @@ const Main: React.FC = () => {
         }
     }, [follow])
 
-  // UX6: 自动滚动到底部
-  useEffect(() => {
-      if (chatContainerRef.current) {
-          const container = chatContainerRef.current.closest('.content') as HTMLElement;
-          if (container) {
-              container.scrollTop = container.scrollHeight;
-          }
-      }
-   }, [conversationInfo, markRes, localFollow, localMsg, response])
+    // UX6: 自动滚动到底部
+    useEffect(() => {
+        if (chatContainerRef.current) {
+            const container = chatContainerRef.current.closest('.content') as HTMLElement;
+            if (container) {
+                container.scrollTop = container.scrollHeight;
+            }
+        }
+    }, [conversationInfo, markRes, localFollow, localMsg, response])
 
     const handleClick = async (item: string) => {
         dispatch(setLoading(true));
@@ -181,93 +182,93 @@ const Main: React.FC = () => {
             content: '重新生成将删除当前回复并重新请求 AI，是否继续？',
             onOk: async () => {
                 dispatch(setLoading(true));
-        try {
-            // 本地清空
-            setMarkRes('')
-            setLocalFollow([])
+                try {
+                    // 本地清空
+                    setMarkRes('')
+                    setLocalFollow([])
 
-            await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    params: { conversation_id: currentConversationId, message_id }
-                }
-            )
+                    await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                            },
+                            params: { conversation_id: currentConversationId, message_id }
+                        }
+                    )
 
-            const response = await axios.post('https://api.coze.cn/v1/conversation/message/list',
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    params: { conversation_id: currentConversationId }
-                }
-            )
+                    const response = await axios.post('https://api.coze.cn/v1/conversation/message/list',
+                        {},
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                            },
+                            params: { conversation_id: currentConversationId }
+                        }
+                    )
 
-            const userMsgId = response.data.data[0].id
+                    const userMsgId = response.data.data[0].id
 
-            await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                    params: { conversation_id: currentConversationId, message_id: userMsgId }
-                }
-            )
-            const stream = await client.chat.stream({
-                bot_id: botId!,
-                conversation_id: currentConversationId!,
-                additional_messages: [{
-                    role: RoleType.User,
-                    content: localMsg,
-                    content_type: 'text',
-                }]
-            });
+                    await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                'Content-Type': 'application/json',
+                            },
+                            params: { conversation_id: currentConversationId, message_id: userMsgId }
+                        }
+                    )
+                    const stream = await client.chat.stream({
+                        bot_id: botId!,
+                        conversation_id: currentConversationId!,
+                        additional_messages: [{
+                            role: RoleType.User,
+                            content: localMsg,
+                            content_type: 'text',
+                        }]
+                    });
 
-            let completeResponse = '';
-            let followArr: string[] = [];
-            let messageId = ''
-            let hasError = false;
-            dispatch(setContent({ msg: localMsg, response: '', follow: [], message_id: '' }))
-            for await (const part of stream) {
-                if (part.event === ChatEventType.CONVERSATION_CHAT_FAILED) {
-                    console.error('Chat failed:', part.data);
-                    hasError = true;
+                    let completeResponse = '';
+                    let followArr: string[] = [];
+                    let messageId = ''
+                    let hasError = false;
+                    dispatch(setContent({ msg: localMsg, response: '', follow: [], message_id: '' }))
+                    for await (const part of stream) {
+                        if (part.event === ChatEventType.CONVERSATION_CHAT_FAILED) {
+                            console.error('Chat failed:', part.data);
+                            hasError = true;
+                            message.error('重新生成失败，请稍后重试');
+                            break;
+                        }
+                        if (part.event === ChatEventType.ERROR) {
+                            console.error('Stream error:', part.data);
+                            hasError = true;
+                            message.error('重新生成出错，请稍后重试');
+                            break;
+                        }
+                        if (part.event === ChatEventType.CONVERSATION_MESSAGE_DELTA) {
+                            completeResponse += part.data.content;
+                            messageId = part.data.id;
+                            dispatch(setContent({ msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId }));
+                        }
+                        if (part.event === ChatEventType.CONVERSATION_MESSAGE_COMPLETED && part.data.type === "follow_up") {
+                            followArr = [...followArr, part.data.content];
+                            dispatch(setContent({ msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId }));
+                        }
+                    }
+                    if (hasError) {
+                        setError('重新生成失败');
+                    }
+
+                } catch (err) {
+                    // UX7: 错误处理 UI
+                    console.log(err);
                     message.error('重新生成失败，请稍后重试');
-                    break;
+                    setError('重新生成失败');
+                } finally {
+                    dispatch(setLoading(false));
                 }
-                if (part.event === ChatEventType.ERROR) {
-                    console.error('Stream error:', part.data);
-                    hasError = true;
-                    message.error('重新生成出错，请稍后重试');
-                    break;
-                }
-                if (part.event === ChatEventType.CONVERSATION_MESSAGE_DELTA) {
-                    completeResponse += part.data.content;
-                    messageId = part.data.id;
-                    dispatch(setContent({ msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId }));
-                }
-                if (part.event === ChatEventType.CONVERSATION_MESSAGE_COMPLETED && part.data.type === "follow_up") {
-                    followArr = [...followArr, part.data.content];
-                    dispatch(setContent({ msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId }));
-                }
-            }
-            if (hasError) {
-                setError('重新生成失败');
-            }
-
-        } catch (err) {
-            // UX7: 错误处理 UI
-            console.log(err);
-            message.error('重新生成失败，请稍后重试');
-            setError('重新生成失败');
-        } finally {
-            dispatch(setLoading(false));
-        }
             }
         });
     }
@@ -281,7 +282,7 @@ const Main: React.FC = () => {
                 </div>
             )}
             {/* UX5: 加载状态 */}
-{loading && conversationInfo.length === 0 && !msg && !markRes && !error && (
+            {historyLoading && conversationInfo.length === 0 && !msg && !markRes && !error && (
                 <div className="loading-indicator">
                     <Spin tip="加载中..." />
                 </div>

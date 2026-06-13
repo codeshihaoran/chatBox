@@ -235,8 +235,8 @@ const Home: React.FC = () => {
                         items={menuItems}
                         selectedKeys={[selectKeys]}
                     />
-                   <div className="sider-bottom" style={{
-                       width: '100%',
+                    <div className="sider-bottom" style={{
+                        width: '100%',
                         padding: '16px 0',
                         background: '#121212',
                         display: 'flex',
