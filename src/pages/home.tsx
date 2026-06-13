@@ -29,26 +29,26 @@ const Home: React.FC = () => {
     const currentConversationId = useSelector(selectConversationId)
     console.log(currentConversationId);
 
-    
+
     const conversationInfo = useSelector(selectConversationInfo);
     const content = useSelector(selectContent);
     const currentConv = conversationContent.find(c => c.conversation_id === currentConversationId);
     const isEmptyConversation = currentConv && !currentConv.value && conversationInfo.conversationInfo.length === 0 && !content.msg && !content.response;
 
-const [selectKeys, setSelectKeys] = useState("")
-const [searchVisible, setSearchVisible] = useState(false)
-const [searchText, setSearchText] = useState("")
+    const [selectKeys, setSelectKeys] = useState("")
+    const [searchVisible, setSearchVisible] = useState(false)
+    const [searchText, setSearchText] = useState("")
     const menuItems: MenuItems[] = conversationContent
         .filter(item => {
             if (!searchVisible || !searchText) return true
             return item.value && item.value.toLowerCase().includes(searchText.toLowerCase())
         })
         .map((item, index) => ({
-        key: index.toString(),
-        id: item.conversation_id,
-        label: <span style={{ color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px', display: 'block', textAlign: 'left' }}>{item.value ? item.value.substring(0, 20) + (item.value.length > 20 ? '...' : '') : '\u65b0\u5bf9\u8bdd'}</span>,
-        icon: <MessageOutlined style={{ color: '#B0B0B0' }} />
-    }))
+            key: index.toString(),
+            id: item.conversation_id,
+            label: <span style={{ color: '#ffffff', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '120px', display: 'block', textAlign: 'left' }}>{item.value ? item.value.substring(0, 20) + (item.value.length > 20 ? '...' : '') : '\u65b0\u5bf9\u8bdd'}</span>,
+            icon: <MessageOutlined style={{ color: '#B0B0B0' }} />
+        }))
     useEffect(() => {
         const handleCopyClick = async (e: MouseEvent) => {
             const target = e.target as HTMLElement;
@@ -162,8 +162,11 @@ const [searchText, setSearchText] = useState("")
                     collapsed={collapsed}
                     style={{
                         background: '#121212',
-                        position: 'relative', 
-                        height: '100vh'       
+                        position: 'relative',
+                        height: '100vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
                     }}
                 >
                     <div className="sider-top">
@@ -225,16 +228,15 @@ const [searchText, setSearchText] = useState("")
                             background: '#121212',
                             color: '#ffffff',
                             overflowY: 'auto',
-                            height: 'calc(100vh - 150px)'
+                            flex: 1,
+                            minHeight: 0
                         }}
                         onClick={handleSelectClick}
                         items={menuItems}
                         selectedKeys={[selectKeys]}
                     />
-                    <div className="sider-bottom" style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        width: '100%',
+                   <div className="sider-bottom" style={{
+                       width: '100%',
                         padding: '16px 0',
                         background: '#121212',
                         display: 'flex',

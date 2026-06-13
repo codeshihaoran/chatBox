@@ -142,12 +142,15 @@ const Main: React.FC = () => {
         }
     }, [follow])
 
-    // UX6: 自动滚动到底部
-    useEffect(() => {
-        if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-        }
-    }, [conversationInfo, markRes, localFollow])
+  // UX6: 自动滚动到底部
+  useEffect(() => {
+      if (chatContainerRef.current) {
+          const container = chatContainerRef.current.closest('.content') as HTMLElement;
+          if (container) {
+              container.scrollTop = container.scrollHeight;
+          }
+      }
+   }, [conversationInfo, markRes, localFollow, localMsg, response])
 
     const handleClick = async (item: string) => {
         dispatch(setLoading(true));

@@ -49,8 +49,9 @@ const Bottom: React.FC = () => {
         }
     };
 
-    const handleClick = async () => {
-        const editorContent = input.trim();
+   const handleClick = async () => {
+        if (loading) return;
+       const editorContent = input.trim();
         if (!editorContent) {
             message.error('请输入内容');
             return;
