@@ -11,11 +11,20 @@ export const contentSlice = createSlice({
         }
     },
     reducers: {
+        // Use strict null/undefined check instead of || to prevent empty strings from being lost
         setContent: (state, action) => {
-            state.value.msg = action.payload.msg || state.value.msg;
-            state.value.response = action.payload.response || state.value.response;
-            state.value.follow = action.payload.follow || state.value.follow;
-            state.value.message_id = action.payload.message_id || state.value.message_id;
+            if (action.payload.msg !== undefined && action.payload.msg !== null) {
+                state.value.msg = action.payload.msg;
+            }
+            if (action.payload.response !== undefined && action.payload.response !== null) {
+                state.value.response = action.payload.response;
+            }
+            if (action.payload.follow !== undefined && action.payload.follow !== null) {
+                state.value.follow = action.payload.follow;
+            }
+            if (action.payload.message_id !== undefined && action.payload.message_id !== null) {
+                state.value.message_id = action.payload.message_id;
+            }
         }
     }
 })

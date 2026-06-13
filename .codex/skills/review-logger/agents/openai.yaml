@@ -1,0 +1,3 @@
+display_name: Review Logger
+short_description: Auto-log fixes, optimizations, and new features to the review document
+default_prompt: After making changes to the chatBox project, log them to the review document.

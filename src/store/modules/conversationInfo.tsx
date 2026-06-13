@@ -4,6 +4,7 @@ type Message = {
     userContent: string;
     assistantContent: string;
     meta_id: string
+    timestamp?: string
 };
 
 export const conversationInfoSlice = createSlice({
