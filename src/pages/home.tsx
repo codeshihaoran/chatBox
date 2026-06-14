@@ -1,10 +1,14 @@
-import React, { ReactNode, useEffect, useState } from "react";
-import { Flex, Layout, message, Menu, Button } from "antd";
+﻿import React, { ReactNode, useEffect, useState } from "react";
+import { Flex, Layout, message, Menu, Button, Input } from "antd";
 import { useDispatch, useSelector } from "react-redux";
+import { DeleteOutlined } from "@ant-design/icons";
 const { Header, Sider, Content, Footer } = Layout
 
 import { token } from "../index";
-import { addConversationContent, selectConversation, setCurrentConversationId, selectConversationId } from "@/store/modules/conversation";
+import { addConversationContent, selectConversation, setCurrentConversationId, selectConversationId, deleteConversationContent } from "@/store/modules/conversation";
+import { selectConversationInfo } from "@/store/modules/conversationInfo";
+import { selectContent } from "@/store/modules/content";
+
 
 import Navbar from "@/components/navbar";
 import Main from "@/components/main";
@@ -13,7 +17,6 @@ import axios from "axios";
 import { FormOutlined, GithubOutlined, MessageOutlined, SearchOutlined } from "@ant-design/icons";
 
 import { Coze } from '@lobehub/icons';
-import { Flexbox } from 'react-layout-kit';
 interface MenuItems {
     key: string,
     id: string,
@@ -25,22 +28,72 @@ const Home: React.FC = () => {
     const [collapsed, setCollapsed] = useState(false)
     const conversationContent = useSelector(selectConversation)
     const currentConversationId = useSelector(selectConversationId)
-    console.log("刷新后", currentConversationId);
+    console.log(currentConversationId);
+
+
+    const conversationInfo = useSelector(selectConversationInfo);
+    const content = useSelector(selectContent);
+    const currentConv = conversationContent.find(c => c.conversation_id === currentConversationId);
+    const isEmptyConversation = currentConv && !currentConv.value && conversationInfo.conversationInfo.length === 0 && !content.msg && !content.response;
 
     const [selectKeys, setSelectKeys] = useState("")
-    const menuItems: MenuItems[] = conversationContent.map((item, index) => ({
-        key: index.toString(),
-        id: item.conversation_id,
-        label: <span style={{ color: '#ffffff' }}>Coze Agent chat</span>,
-        icon: <MessageOutlined style={{ color: '#B0B0B0' }} />
-    }))
+    const [searchVisible, setSearchVisible] = useState(false)
+    const [searchText, setSearchText] = useState("")
+    const menuItems: MenuItems[] = conversationContent
+        .filter(item => {
+            if (!searchVisible || !searchText) return true
+            return item.value && item.value.toLowerCase().includes(searchText.toLowerCase())
+        })
+        .map((item, index) => ({
+            key: index.toString(),
+            id: item.conversation_id,
+            label: (
+                <div 
+                    style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        width: '100%'
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <span style={{ 
+                        color: '#ffffff', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis', 
+                        whiteSpace: 'nowrap', 
+                        maxWidth: '100px', 
+                        display: 'block', 
+                        textAlign: 'left',
+                        flex: 1
+                    }}>
+                        {item.value ? item.value.substring(0, 20) + (item.value.length > 20 ? '...' : '') : '新对话'}
+                    </span>
+                    <Button
+                        type="text"
+                        size="small"
+                        icon={<DeleteOutlined style={{ color: '#B0B0B0', fontSize: '14px' }} />}
+                        style={{ 
+                            marginLeft: '8px',
+                            minWidth: '24px',
+                            height: '24px',
+                            padding: 0
+                        }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteConversation(item.conversation_id);
+                        }}
+                    />
+                </div>
+            ),
+            icon: <MessageOutlined style={{ color: '#B0B0B0' }} />
+        }))
     useEffect(() => {
         const handleCopyClick = async (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            // 确保点击的是带 hljs-btn 按钮
+
             if (target && target.classList.contains('hljs-btn')) {
                 const codeBlock = target.closest('pre > code');
-                // 提取纯文本
                 if (codeBlock) {
                     const pureText = Array.from(codeBlock.childNodes)
                         .filter(node => !(node as HTMLElement).classList?.contains('hljs-div'))
@@ -55,19 +108,20 @@ const Home: React.FC = () => {
                 }
             }
         };
-        // 添加用户点击页面监听器
+
         document.addEventListener('click', handleCopyClick)
         return () => {
             document.removeEventListener('click', handleCopyClick)
         }
     }, [])
     useEffect(() => {
+        if (!currentConversationId) return
         menuItems.forEach(item => {
             if (item.id === currentConversationId) {
                 setSelectKeys(item.key)
             }
         })
-    }, [currentConversationId])
+    }, [currentConversationId, searchVisible, searchText])
     useEffect(() => {
         const getConversationId = async () => {
             const prevConversation = conversationContent[0]
@@ -99,6 +153,11 @@ const Home: React.FC = () => {
                 dispatch(setCurrentConversationId(item.id))
             }
         })
+    }
+
+    const handleDeleteConversation = (conversationId: string) => {
+        dispatch(deleteConversationContent(conversationId))
+        message.success('对话已删除')
     }
 
     const handleCreateClick = async () => {
@@ -147,8 +206,11 @@ const Home: React.FC = () => {
                     collapsed={collapsed}
                     style={{
                         background: '#121212',
-                        position: 'relative',  // 添加相对定位
-                        height: '100vh'        // 确保Sider占满整个视口高度
+                        position: 'relative',
+                        height: '100vh',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        overflow: 'hidden',
                     }}
                 >
                     <div className="sider-top">
@@ -160,6 +222,10 @@ const Home: React.FC = () => {
                                 width: 48,
                                 height: 48,
                                 display: collapsed ? "none" : "block"
+                            }}
+                            onClick={() => {
+                                setSearchVisible(prev => !prev)
+                                setSearchText("")
                             }}
                         ></Button>
                         <Button
@@ -176,34 +242,53 @@ const Home: React.FC = () => {
                         ></Button>
 
                     </div>
-                    {!collapsed && <div className="top-doc">
-                        <a href="https://www.coze.cn/open/docs/guides">
-                            <Coze size={20} style={{ color: '#B0B0B0' }} />
-                            <span className="top-doc-span">探索 Coze</span>
-                        </a>
-                    </div>}
-                    <Menu
-                        mode="inline"
-                        style={{
-                            background: '#121212',
-                            color: '#ffffff',
-                            overflowY: 'auto',
-                            height: 'calc(100vh - 150px)'
-                        }}
-                        onClick={handleSelectClick}
-                        items={menuItems}
-                        selectedKeys={[selectKeys]}
-                    />
-                    <div className="sider-bottom" style={{
-                        position: 'absolute',
-                        bottom: 0,
-                        width: '100%',
-                        padding: '16px 0',
-                        background: '#121212',
+                    <div style={{
+                        flex: 1,
+                        minHeight: 0,
                         display: 'flex',
-                        justifyContent: 'center',
-                        borderTop: '1px solid #333'
+                        flexDirection: 'column',
+                        overflow: 'hidden',
+                        maxHeight: 'calc(100vh - 128px)'
                     }}>
+                        {!collapsed && searchVisible && (
+                            <div style={{ padding: '0 8px', marginBottom: 8 }}>
+                                <Input
+                                    placeholder="请输入内容..."
+                                    value={searchText}
+                                    onChange={e => setSearchText(e.target.value)}
+                                    style={{
+                                        background: '#888',
+                                        border: '1px solid #333',
+                                        color: '#fff',
+                                        borderRadius: 6,
+                                        width: '100%',
+                                    }}
+                                    autoFocus
+                                    allowClear
+                                />
+                            </div>
+                        )}
+                        {!collapsed && <div className="top-doc">
+                            <a href="https://www.coze.cn/open/docs/guides">
+                                <Coze size={20} style={{ color: '#B0B0B0' }} />
+                                <span className="top-doc-span">探索 Coze</span>
+                            </a>
+                        </div>}
+                        <Menu
+                            mode="inline"
+                            style={{
+                                background: '#121212',
+                                color: '#ffffff',
+                                overflowY: 'auto',
+                                flex: 1,
+                                minHeight: 0
+                            }}
+                            onClick={handleSelectClick}
+                            items={menuItems}
+                            selectedKeys={[selectKeys]}
+                        />
+                    </div>
+                    <div className="sider-bottom">
                         <Button
                             icon={<GithubOutlined style={{ fontSize: '30px' }} />}
                             onClick={() => window.open('https://github.com/codeshihaoran/chatBox', '_blank')}
@@ -218,20 +303,38 @@ const Home: React.FC = () => {
                             status={collapsed}
                         />
                     </Header>
-                    <Content className="content" style={{ background: '#1B1B1B' }}>
-                        <Main />
-                    </Content>
-                    <Footer className="footer"
-                        style={{
-                            background: "#1B1B1B",
-                            color: "rgba(255,255,255,0.7)",
-                        }}
-                    >
-                        <Bottom />
-                    </Footer>
+                    {isEmptyConversation ? (
+                        <Content className="content" style={{
+                            background: '#1B1B1B',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            overflow: 'hidden'
+                        }}>
+                            <div className="empty-chat-prompt">你在忙什么？有什么问题需要解决吗？</div>
+                            <Bottom />
+                        </Content>
+                    ) : (
+                        <>
+                            <Content className="content" style={{ background: '#1B1B1B' }}>
+                                <Main />
+                            </Content>
+                            <Footer className="footer"
+                                style={{
+                                    background: "#1B1B1B",
+                                    color: "rgba(255,255,255,0.7)",
+                                }}
+                            >
+                                <Bottom />
+                            </Footer>
+                        </>
+                    )}
                 </Layout>
             </Layout>
         </Flex>
     )
 }
 export default Home
+
+

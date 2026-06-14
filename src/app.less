@@ -55,7 +55,65 @@
 .chat-main {
     width: 1225px;
     margin: 0 auto;
-    height: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+/* UX5: 加载状态指示器 */
+.loading-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 0;
+    min-height: 200px;
+}
+
+/* UX7: 错误提示横幅 */
+.error-banner {
+    background-color: #3a1a1a;
+    border: 1px solid #5c2a2a;
+    border-radius: 8px;
+    color: #ff6b6b;
+    padding: 10px 16px;
+    margin: 12px auto;
+    max-width: 600px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.error-dismiss {
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 0 4px;
+}
+
+/* UX10: 消息时间�?*/
+.message-time {
+    font-size: 11px;
+    color: #666;
+    margin-top: 4px;
+    text-align: right;
+}
+
+.message-time-left {
+    font-size: 11px;
+    color: #666;
+    margin-top: 4px;
+    text-align: left;
+}
+
+/* 删除按钮在菜单项中的样式 */
+.ant-menu-item .anticon-delete {
+    visibility: hidden;
+}
+
+.ant-menu-item:hover .anticon-delete {
+    visibility: visible;
 }
 
 .main {
@@ -106,8 +164,8 @@
 }
 
 img {
-    width: 30px;
-    height: 30px;
+    max-width: 100%;
+    height: auto;
 }
 
 .follow_up {
@@ -131,7 +189,7 @@ img {
 }
 
 .follow_up p::after {
-    content: "→";
+    content: "?";
     margin-left: 5px;
 }
 
@@ -167,11 +225,27 @@ img {
     display: flex;
     justify-content: flex-end;
     align-items: center;
+    flex-shrink: 0;
 }
 
 .sider-btn {
     background-color: #121212;
     border: none;
+}
+
+.sider-bottom {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 64px;
+    padding: 0;
+    background: #121212;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top: 1px solid #333;
+    flex-shrink: 0;
 }
 
 .collapsed-btn:hover,
@@ -210,7 +284,7 @@ img {
     background-color: #2a2a2a;
     border: 1px solid #444;
     border-radius: 20px;
-    height: 100%;
+    height: auto;
     flex-direction: column;
 }
 
@@ -224,7 +298,7 @@ img {
     margin-bottom: 8px;
 }
 
-/* 新增 input 和 send 按钮的容器 */
+/* 新增 input �?send 按钮的容�?*/
 .input-and-send-container {
     display: flex;
     width: 100%;
@@ -468,8 +542,8 @@ img {
 .uploaded-image img {
     width: auto;
     height: auto;
-    max-width: 300px;
-    max-height: 300px;
+    max-width: 400px;
+    max-height: none;
     border-radius: 8px;
     margin: 5px 0;
 }
@@ -525,9 +599,22 @@ img {
 
 .generate-img {
     display: block;
-    width: 300px;
-    height: 300px;
+    max-width: 400px;
+    max-height: none;
+    width: auto;
+    height: auto;
     border-radius: 10px;
+    margin: 8px 0;
+}
+
+/* 空对话状态提示语 */
+.empty-chat-prompt {
+    font-size: 24px;
+    color: #666;
+    text-align: center;
+    margin-bottom: 24px;
+    font-weight: 500;
+    letter-spacing: 1px;
 }
 
 .top-doc {

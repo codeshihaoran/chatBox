@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useStartConversation } from "@/service/index";
 import { setLoading, selectLoading } from "@/store/modules/loading";
 import { setFileInfo, addFileInfo, deleteFileInfo, clearFileInfo, selectUploadFileInfo } from "@/store/modules/fileInfo";
+import { setFileInMap, getFileFromMap, deleteFileFromMap, clearFileMap } from "@/store/modules/fileInfo";
 import { addSentFile, updateSessionId } from '@/store/modules/sentFileInfo';
 
 import axios from "axios";
@@ -30,14 +31,27 @@ const Bottom: React.FC = () => {
     const inputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const [input, setInput] = useState('')
+    const [isFocused, setIsFocused] = useState(false)
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
 
     const dispatch = useDispatch()
     const startConversation = useStartConversation()
     const loading = useSelector(selectLoading)
     const fileInfo = useSelector(selectUploadFileInfo)
 
-    const handleClick = async () => {
-        const editorContent = input.trim();
+    // UX8: textarea 自动调整高度
+    const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setInput(e.target.value);
+        // 自动调整高度
+        if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto';
+            textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
+        }
+    };
+
+   const handleClick = async () => {
+        if (loading) return;
+       const editorContent = input.trim();
         if (!editorContent) {
             message.error('请输入内容');
             return;
@@ -53,7 +67,7 @@ const Bottom: React.FC = () => {
                 // 上传文件并获取文件ID
                 await Promise.all(fileInfo.map(async (item) => {
                     const formData = new FormData()
-                    formData.append('file', item.file)
+                    formData.append('file', getFileFromMap(item.file_id!))
                     const response = await axios.post('https://api.coze.cn/v1/files/upload', formData, {
                         headers: {
                             "Authorization": `Bearer ${token}`,
@@ -68,7 +82,6 @@ const Bottom: React.FC = () => {
                             fileType: item.fileType,
                             isloading: item.isloading,
                             fileBase: item.fileBase,
-                            file: item.file
                         }))
                         dispatch(addSentFile({
                             file_id: data.id,
@@ -95,12 +108,14 @@ const Bottom: React.FC = () => {
                 })
                 const content = JSON.stringify(messageContent)
                 dispatch(clearFileInfo())
+                clearFileMap()
                 await startConversation(currentMsg, 'object_string', content, newSessionId)
             } else {
                 await startConversation(currentMsg)
             }
         } catch (err) {
-            console.log(err);
+            console.error('Send message error:', err);
+            message.error('发送消息失败，请检查网络后重试');
         } finally {
             dispatch(setLoading(false))
         }
@@ -131,13 +146,13 @@ const Bottom: React.FC = () => {
         try {
             // 生成文件/照片ID
             const fileId = Date.now().toString();
+            setFileInMap(fileId, file);
             dispatch(addFileInfo({
                 file_id: fileId,
                 fileName: file.name,
                 fileType: file.type.startsWith('image/') ? 'image' : 'file',
                 isloading: true,
                 fileBase: '',
-                file: file
             }))
 
             if (file.type.startsWith('image/')) {
@@ -153,7 +168,6 @@ const Bottom: React.FC = () => {
                     fileType: 'image',
                     isloading: false,
                     fileBase: base64,
-                    file: file
                 }))
             } else {
                 // 处理其他文件
@@ -163,7 +177,6 @@ const Bottom: React.FC = () => {
                     fileType: 'file',
                     isloading: false,
                     fileBase: '',
-                    file: file
                 }))
             }
         } catch (err) {
@@ -174,6 +187,7 @@ const Bottom: React.FC = () => {
     }
     // 删除预览文件
     const handleDeleteFile = (fileId: string) => {
+        deleteFileFromMap(fileId)
         dispatch(deleteFileInfo(fileId))
     }
 
@@ -228,11 +242,16 @@ const Bottom: React.FC = () => {
 
             <div className="input-and-send-container">
                 <textarea
+                    ref={textareaRef}
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="请输入消息"
+                    onChange={handleInputChange}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
+                    autoFocus
+                    placeholder="请输入消息..."
                     className="chat-input"
                     onKeyDown={handleKeyDown}
+                    rows={1}
                 />
 
                 <div className="chat-send">
@@ -271,6 +290,18 @@ const Bottom: React.FC = () => {
                         {loading ? '发送中...' : '发送'}
                     </Button>
                 </div>
+            </div>
+            {/* UX8: 输入提示 */}
+            <div style={{
+                fontSize: '11px',
+                color: '#666',
+                textAlign: 'right',
+                marginTop: '4px',
+                paddingRight: '4px',
+                opacity: isFocused || input.length > 0 ? 1 : 0.5,
+                transition: 'opacity 0.3s'
+            }}>
+                Enter 发送，Shift+Enter 换行
             </div>
         </div>
     )

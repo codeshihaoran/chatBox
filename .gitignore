@@ -1,3 +1,6 @@
 /node_modules
 /dist
 *.env
+*chatBox-analysis.md
+*chatBox-review.md
+*dev-server.log

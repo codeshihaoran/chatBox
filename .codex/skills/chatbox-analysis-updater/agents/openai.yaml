@@ -1,0 +1,3 @@
+﻿display_name: chatBox Analysis Updater
+short_description: Update project analysis document with changed module information only
+default_prompt: After making changes to the chatBox project, update the analysis document with only the changed modules.
