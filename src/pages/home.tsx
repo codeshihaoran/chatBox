@@ -73,12 +73,13 @@ const Home: React.FC = () => {
                         type="text"
                         size="small"
                         icon={<DeleteOutlined style={{ color: '#B0B0B0', fontSize: '14px' }} />}
-                        style={{ 
+                        style={{
                             marginLeft: '8px',
                             minWidth: '24px',
                             height: '24px',
                             padding: 0
                         }}
+                        disabled={conversationContent.length <= 1}
                         onClick={(e) => {
                             e.stopPropagation();
                             handleDeleteConversation(item.conversation_id);
@@ -156,6 +157,7 @@ const Home: React.FC = () => {
     }
 
     const handleDeleteConversation = (conversationId: string) => {
+        if (conversationContent.length <= 1) return
         dispatch(deleteConversationContent(conversationId))
         message.success('对话已删除')
     }
