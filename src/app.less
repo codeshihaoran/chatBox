@@ -189,6 +189,23 @@ img {
     height: auto;
 }
 
+/* ===== 统一图片渲染尺寸 =====
+ * 无论是用户上传的图片还是 AI 生成的图片，
+ * 在聊天区域内保持一致的展示尺寸。
+ * 图片保持原始宽高比，但限制在 32rem × 32rem 范围内，
+ * 避免过大的图片撑满聊天区域。 */
+.chat-image,
+.generate-img {
+    display: block;
+    max-width: 32rem;
+    max-height: 32rem;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 0.8rem;
+    margin: 0.5rem 0;
+}
+
 .follow_up {
     align-self: flex-start;
     background-color: #2a2a2a;
@@ -517,11 +534,6 @@ img {
         font-size: 1.6rem;
     }
 
-    .uploaded-image img,
-    .generate-img {
-        max-width: 100%;
-    }
-
     .empty-chat-prompt {
         font-size: 2rem;
         padding: 0 1.6rem;
@@ -689,13 +701,9 @@ img {
 .hljs-string  { color: #a5d6ff; }
 .hljs-number  { color: #79c0ff; }
 
-.uploaded-image img {
-    width: auto;
-    height: auto;
-    max-width: 40rem;
-    max-height: none;
-    border-radius: 0.8rem;
-    margin: 0.5rem 0;
+.uploaded-image {
+    display: flex;
+    justify-content: flex-start;
 }
 
 .uploaded-file {
@@ -745,15 +753,7 @@ img {
     to { transform: rotate(360deg); }
 }
 
-.generate-img {
-    display: block;
-    max-width: 40rem;
-    max-height: none;
-    width: auto;
-    height: auto;
-    border-radius: 1rem;
-    margin: 0.8rem 0;
-}
+/* 已合并到 .chat-image, .generate-img 统一规则中 */
 
 /* 空对话状态提示语 */
 .empty-chat-prompt {

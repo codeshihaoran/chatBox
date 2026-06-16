@@ -330,7 +330,7 @@ const Main: React.FC = () => {
                             .map(file => (
                                 file.fileType === 'image' ? (
                                     <div key={file.file_id} className="uploaded-image">
-                                        <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '100%', maxHeight: 'none' }} />
+                                        <img src={file.fileBase} alt={file.fileName} className="chat-image" />
                                     </div>
                                 ) : (
                                     <div key={file.file_id} className="uploaded-file">
