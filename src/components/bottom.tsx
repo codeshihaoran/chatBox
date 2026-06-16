@@ -257,10 +257,10 @@ const Bottom: React.FC = () => {
                 <div className="chat-send">
                     <div className="chat-file">
                         <button onClick={() => handleFileClick(inputRef)}>
-                            <FontAwesomeIcon icon={faFolderPlus} style={{ fontSize: "24px", color: "#B0B0B0" }} />
+                            <FontAwesomeIcon icon={faFolderPlus} style={{ fontSize: "2.4rem", color: "#B0B0B0" }} />
                         </button>
                         <button onClick={() => handleFileClick(imageInputRef)}>
-                            <FontAwesomeIcon icon={faCameraAlt} style={{ fontSize: "24px", color: "#B0B0B0" }} />
+                            <FontAwesomeIcon icon={faCameraAlt} style={{ fontSize: "2.4rem", color: "#B0B0B0" }} />
                         </button>
                         <input
                             type="file"
@@ -293,11 +293,11 @@ const Bottom: React.FC = () => {
             </div>
             {/* UX8: 输入提示 */}
             <div style={{
-                fontSize: '11px',
+                fontSize: '1.1rem',
                 color: '#666',
                 textAlign: 'right',
-                marginTop: '4px',
-                paddingRight: '4px',
+                marginTop: '0.4rem',
+                paddingRight: '0.4rem',
                 opacity: isFocused || input.length > 0 ? 1 : 0.5,
                 transition: 'opacity 0.3s'
             }}>

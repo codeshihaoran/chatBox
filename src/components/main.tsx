@@ -183,42 +183,34 @@ const Main: React.FC = () => {
             onOk: async () => {
                 dispatch(setLoading(true));
                 try {
-                    // 本地清空
+                    // 保存旧消息 ID，用于流成功后清理
+                    const oldAssistantMsgId = message_id;
+
+                    // 获取旧 user message ID（流成功后清理用）
+                    let oldUserMsgId = '';
+                    try {
+                        const listRes = await axios.post('https://api.coze.cn/v1/conversation/message/list',
+                            {},
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${token}`,
+                                    'Content-Type': 'application/json',
+                                },
+                                params: { conversation_id: currentConversationId }
+                            }
+                        );
+                        if (listRes.data.code === 0 && listRes.data.data.length > 0) {
+                            oldUserMsgId = listRes.data.data[0].id;
+                        }
+                    } catch (e) {
+                        console.error('获取旧消息ID失败:', e);
+                    }
+
+                    // 本地清空 UI
                     setMarkRes('')
                     setLocalFollow([])
 
-                    await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
-                        {
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                                'Content-Type': 'application/json',
-                            },
-                            params: { conversation_id: currentConversationId, message_id }
-                        }
-                    )
-
-                    const response = await axios.post('https://api.coze.cn/v1/conversation/message/list',
-                        {},
-                        {
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                                'Content-Type': 'application/json',
-                            },
-                            params: { conversation_id: currentConversationId }
-                        }
-                    )
-
-                    const userMsgId = response.data.data[0].id
-
-                    await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
-                        {
-                            headers: {
-                                Authorization: `Bearer ${token}`,
-                                'Content-Type': 'application/json',
-                            },
-                            params: { conversation_id: currentConversationId, message_id: userMsgId }
-                        }
-                    )
+                    // 先发起流请求（不删旧消息，防止流失败后对话为空）
                     const stream = await client.chat.stream({
                         bot_id: botId!,
                         conversation_id: currentConversationId!,
@@ -236,13 +228,13 @@ const Main: React.FC = () => {
                     dispatch(setContent({ msg: localMsg, response: '', follow: [], message_id: '' }))
                     for await (const part of stream) {
                         if (part.event === ChatEventType.CONVERSATION_CHAT_FAILED) {
-                            console.error('Chat failed:', part.data);
+                            console.error('Chat failed:', JSON.stringify(part.data, null, 2));
                             hasError = true;
                             message.error('重新生成失败，请稍后重试');
                             break;
                         }
                         if (part.event === ChatEventType.ERROR) {
-                            console.error('Stream error:', part.data);
+                            console.error('Stream error:', JSON.stringify(part.data, null, 2));
                             hasError = true;
                             message.error('重新生成出错，请稍后重试');
                             break;
@@ -257,7 +249,36 @@ const Main: React.FC = () => {
                             dispatch(setContent({ msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId }));
                         }
                     }
-                    if (hasError) {
+
+                    if (!hasError) {
+                        // 流请求成功，清理旧消息
+                        try {
+                            if (oldAssistantMsgId) {
+                                await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
+                                    {
+                                        headers: {
+                                            Authorization: `Bearer ${token}`,
+                                            'Content-Type': 'application/json',
+                                        },
+                                        params: { conversation_id: currentConversationId, message_id: oldAssistantMsgId }
+                                    }
+                                );
+                            }
+                            if (oldUserMsgId) {
+                                await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
+                                    {
+                                        headers: {
+                                            Authorization: `Bearer ${token}`,
+                                            'Content-Type': 'application/json',
+                                        },
+                                        params: { conversation_id: currentConversationId, message_id: oldUserMsgId }
+                                    }
+                                );
+                            }
+                        } catch (e) {
+                            console.error('清理旧消息失败，不影响使用:', e);
+                        }
+                    } else {
                         setError('重新生成失败');
                     }
 
@@ -298,11 +319,11 @@ const Main: React.FC = () => {
                             .map(file => (
                                 file.fileType === 'image' ? (
                                     <div key={file.file_id} className="uploaded-image">
-                                        <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '400px', maxHeight: 'none' }} />
+                                        <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '100%', maxHeight: 'none' }} />
                                     </div>
                                 ) : (
                                     <div key={file.file_id} className="uploaded-file">
-                                        <a href="#">?? {file.fileName}</a>
+                                        <a href="#">📎 {file.fileName}</a>
                                     </div>
                                 )
                             ))
@@ -329,7 +350,7 @@ const Main: React.FC = () => {
                         .map(file => (
                             file.fileType === 'image' ? (
                                 <div key={file.file_id} className="uploaded-image">
-                                    <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '400px', maxHeight: 'none' }} />
+                                    <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '100%', maxHeight: 'none' }} />
                                 </div>
                             ) : (
                                 <div key={file.file_id} className="uploaded-file">
@@ -351,10 +372,10 @@ const Main: React.FC = () => {
                 {markRes && (
                     <div className="icons">
                         <button className="copy-btn" onClick={handleCopyText}>
-                            <FontAwesomeIcon icon={faCopy} style={{ color: "#B0B0B0", fontSize: "14px" }} />
+                            <FontAwesomeIcon icon={faCopy} style={{ color: "#B0B0B0", fontSize: "1.4rem" }} />
                         </button>
                         <button onClick={handleRegenerate}>
-                            <FontAwesomeIcon icon={faRedo} style={{ color: "#B0B0B0", fontSize: "14px" }} />
+                            <FontAwesomeIcon icon={faRedo} style={{ color: "#B0B0B0", fontSize: "1.4rem" }} />
                         </button>
                     </div>
                 )}

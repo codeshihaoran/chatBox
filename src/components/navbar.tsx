@@ -18,12 +18,12 @@ const Navbar: React.FC<NavbarProps> = ({ sendStatusToHome, status }) => {
                     type="text"
                     className="collapsed-btn"
                     icon={status
-                        ? <MenuUnfoldOutlined style={{ color: "#B0B0B0", fontSize: "20px" }} />
-                        : <MenuFoldOutlined style={{ color: "#B0B0B0", fontSize: "20px" }} />}
+                        ? <MenuUnfoldOutlined style={{ color: "#B0B0B0", fontSize: "2rem" }} />
+                        : <MenuFoldOutlined style={{ color: "#B0B0B0", fontSize: "2rem" }} />}
                     onClick={() => sendStatusToHome(!status)}
                     style={{
-                        width: 48,
-                        height: 48,
+                        width: '4.8rem',
+                        height: '4.8rem',
                     }}
                 >
                 </Button>

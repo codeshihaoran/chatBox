@@ -1,4 +1,4 @@
-﻿import React, { ReactNode, useEffect, useState } from "react";
+import React, { ReactNode, useEffect, useState, useCallback } from "react";
 import { Flex, Layout, message, Menu, Button, Input } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { DeleteOutlined } from "@ant-design/icons";
@@ -26,6 +26,7 @@ interface MenuItems {
 const Home: React.FC = () => {
     const dispatch = useDispatch()
     const [collapsed, setCollapsed] = useState(false)
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
     const conversationContent = useSelector(selectConversation)
     const currentConversationId = useSelector(selectConversationId)
     console.log(currentConversationId);
@@ -39,6 +40,24 @@ const Home: React.FC = () => {
     const [selectKeys, setSelectKeys] = useState("")
     const [searchVisible, setSearchVisible] = useState(false)
     const [searchText, setSearchText] = useState("")
+
+    // 响应式：检测屏幕宽度变化
+    useEffect(() => {
+        const handleResize = () => {
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+            if (mobile) {
+                setCollapsed(true);
+            }
+        };
+        window.addEventListener('resize', handleResize);
+        // 初始检查
+        if (window.innerWidth < 768) {
+            setCollapsed(true);
+        }
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
     const menuItems: MenuItems[] = conversationContent
         .filter(item => {
             if (!searchVisible || !searchText) return true
@@ -48,22 +67,22 @@ const Home: React.FC = () => {
             key: index.toString(),
             id: item.conversation_id,
             label: (
-                <div 
-                    style={{ 
-                        display: 'flex', 
-                        justifyContent: 'space-between', 
+                <div
+                    style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
                         alignItems: 'center',
                         width: '100%'
                     }}
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <span style={{ 
-                        color: '#ffffff', 
-                        overflow: 'hidden', 
-                        textOverflow: 'ellipsis', 
-                        whiteSpace: 'nowrap', 
-                        maxWidth: '100px', 
-                        display: 'block', 
+                    <span style={{
+                        color: '#ffffff',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        maxWidth: '10rem',
+                        display: 'block',
                         textAlign: 'left',
                         flex: 1
                     }}>
@@ -72,11 +91,11 @@ const Home: React.FC = () => {
                     <Button
                         type="text"
                         size="small"
-                        icon={<DeleteOutlined style={{ color: '#B0B0B0', fontSize: '14px' }} />}
+                        icon={<DeleteOutlined style={{ color: '#B0B0B0', fontSize: '1.4rem' }} />}
                         style={{
-                            marginLeft: '8px',
-                            minWidth: '24px',
-                            height: '24px',
+                            marginLeft: '0.8rem',
+                            minWidth: '2.4rem',
+                            height: '2.4rem',
                             padding: 0
                         }}
                         disabled={conversationContent.length <= 1}
@@ -154,6 +173,10 @@ const Home: React.FC = () => {
                 dispatch(setCurrentConversationId(item.id))
             }
         })
+        // 移动端选择会话后自动收起侧边栏
+        if (isMobile) {
+            setCollapsed(true);
+        }
     }
 
     const handleDeleteConversation = (conversationId: string) => {
@@ -206,23 +229,45 @@ const Home: React.FC = () => {
                     className="sider"
                     trigger={null}
                     collapsed={collapsed}
+                    breakpoint="md"
+                    collapsedWidth={isMobile ? 0 : 80}
+                    onBreakpoint={(broken) => {
+                        setIsMobile(broken);
+                        if (broken) setCollapsed(true);
+                    }}
                     style={{
                         background: '#121212',
-                        position: 'relative',
-                        height: '100vh',
+                        position: isMobile ? 'fixed' : 'relative',
+                        height: isMobile ? '100vh' : '100vh',
                         display: 'flex',
                         flexDirection: 'column',
                         overflow: 'hidden',
+                        zIndex: isMobile && !collapsed ? 1000 : 'auto',
                     }}
                 >
+                    {/* 移动端遮罩层 */}
+                    {isMobile && !collapsed && (
+                        <div
+                            style={{
+                                position: 'fixed',
+                                top: 0,
+                                left: 0,
+                                right: 0,
+                                bottom: 0,
+                                background: 'rgba(0,0,0,0.5)',
+                                zIndex: -1,
+                            }}
+                            onClick={() => setCollapsed(true)}
+                        />
+                    )}
                     <div className="sider-top">
                         <Button
                             type="text"
                             className="sider-btn"
-                            icon={<SearchOutlined style={{ color: '#B0B0B0', fontSize: '20px' }} />}
+                            icon={<SearchOutlined style={{ color: '#B0B0B0', fontSize: '2rem' }} />}
                             style={{
-                                width: 48,
-                                height: 48,
+                                width: '4.8rem',
+                                height: '4.8rem',
                                 display: collapsed ? "none" : "block"
                             }}
                             onClick={() => {
@@ -233,10 +278,10 @@ const Home: React.FC = () => {
                         <Button
                             type="text"
                             className="sider-btn"
-                            icon={<FormOutlined style={{ color: '#B0B0B0', fontSize: '20px' }} />}
+                            icon={<FormOutlined style={{ color: '#B0B0B0', fontSize: '2rem' }} />}
                             style={{
-                                width: 48,
-                                height: 48,
+                                width: '4.8rem',
+                                height: '4.8rem',
                                 display: collapsed ? "none" : "block"
                             }}
 
@@ -250,10 +295,10 @@ const Home: React.FC = () => {
                         display: 'flex',
                         flexDirection: 'column',
                         overflow: 'hidden',
-                        maxHeight: 'calc(100vh - 128px)'
+                        maxHeight: 'calc(100vh - 12.8rem)'
                     }}>
                         {!collapsed && searchVisible && (
-                            <div style={{ padding: '0 8px', marginBottom: 8 }}>
+                            <div style={{ padding: '0 0.8rem', marginBottom: '0.8rem' }}>
                                 <Input
                                     placeholder="请输入内容..."
                                     value={searchText}
@@ -262,7 +307,7 @@ const Home: React.FC = () => {
                                         background: '#888',
                                         border: '1px solid #333',
                                         color: '#fff',
-                                        borderRadius: 6,
+                                        borderRadius: '0.6rem',
                                         width: '100%',
                                     }}
                                     autoFocus
@@ -292,13 +337,18 @@ const Home: React.FC = () => {
                     </div>
                     <div className="sider-bottom">
                         <Button
-                            icon={<GithubOutlined style={{ fontSize: '30px' }} />}
+                            icon={<GithubOutlined style={{ fontSize: '3rem' }} />}
                             onClick={() => window.open('https://github.com/codeshihaoran/chatBox', '_blank')}
                         ></Button>
                     </div>
                 </Sider>
 
-                <Layout style={{ background: '#1B1B1B', color: '#ffffff' }}>
+                <Layout style={{
+                    background: '#1B1B1B',
+                    color: '#ffffff',
+                    marginLeft: isMobile && !collapsed ? '200px' : 0,
+                    transition: 'margin-left 0.2s',
+                }}>
                     <Header className="header" style={{ background: '#1B1B1B' }}>
                         <Navbar
                             sendStatusToHome={handleChangeClick}
@@ -338,5 +388,3 @@ const Home: React.FC = () => {
     )
 }
 export default Home
-
-
