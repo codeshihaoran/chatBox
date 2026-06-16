@@ -4,13 +4,11 @@ import { useDispatch, useSelector } from "react-redux";
 import 'highlight.js/styles/atom-one-dark.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCopy, faRedo } from '@fortawesome/free-solid-svg-icons';
-import { selectContent } from "@/store/modules/content";
+import { selectContent, setContent, cacheStreamContent, restoreFromCache, clearStreamCache } from "@/store/modules/content";
 import { useStartConversation } from "@/service/index";
-import { setLoading } from "@/store/modules/loading";
-import { selectLoading } from "@/store/modules/loading";
+import { setLoading, selectLoading } from "@/store/modules/loading";
 import { selectConversationInfo, setConversationInfo } from "@/store/modules/conversationInfo";
 import { selectConversationId } from "@/store/modules/conversation";
-import { setContent } from "@/store/modules/content";
 import { useMarked } from "./marked";
 import { message, Spin } from "antd";
 import { Modal } from "antd";
@@ -19,6 +17,7 @@ import { hasValidConfig } from '@/utils/userConfig'
 import { ChatEventType, RoleType } from "@coze/api";
 import axios from "axios";
 import { selectSentFiles, selectCurrentSessionId } from "@/store/modules/sentFileInfo";
+import store from "@/store";
 
 
 const Main: React.FC = () => {
@@ -109,6 +108,11 @@ const Main: React.FC = () => {
             } finally {
                 if (!cancelled) {
                     setHistoryLoading(false);
+                    // B8: 切换回已缓存的对话时，恢复之前缓存的部分流式响应内容
+                    const cached = store.getState().content.streamCache[currentConversationId];
+                    if (cached && cached.response) {
+                        dispatch(restoreFromCache(currentConversationId));
+                    }
                 }
             }
         }
@@ -243,7 +247,21 @@ const Main: React.FC = () => {
                     let messageId = ''
                     let hasError = false;
                     dispatch(setContent({ msg: localMsg, response: '', follow: [], message_id: '' }))
+                    const regenerateId = currentConversationId;
                     for await (const part of stream) {
+                        // B8: 检测对话是否已切换，避免重新生成的流式内容污染其他对话
+                        const latestId = store.getState().conversation.value.currentConversationId;
+                        if (latestId !== regenerateId) {
+                            console.log('对话已切换，缓存重新生成的流式响应');
+                            // B8: 缓存部分响应内容，切换回去时可恢复
+                            dispatch(cacheStreamContent({
+                                conversationId: regenerateId,
+                                data: { msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId }
+                            }));
+                            hasError = true;
+                            break;
+                        }
+
                         if (part.event === ChatEventType.CONVERSATION_CHAT_FAILED) {
                             console.error('Chat failed:', JSON.stringify(part.data, null, 2));
                             hasError = true;
@@ -268,6 +286,8 @@ const Main: React.FC = () => {
                     }
 
                     if (!hasError) {
+                        // B8: 重新生成流正常完成，清除缓存
+                        dispatch(clearStreamCache(currentConversationId));
                         // 流请求成功，清理旧消息
                         try {
                             if (oldAssistantMsgId) {

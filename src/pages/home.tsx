@@ -10,6 +10,7 @@ import { addConversationContent, selectConversation, setCurrentConversationId, s
 import { selectConversationInfo } from "@/store/modules/conversationInfo";
 import { selectContent } from "@/store/modules/content";
 import { selectIsLoggedIn } from "@/store/modules/userConfig";
+import { selectLoading } from "@/store/modules/loading";
 
 
 import Navbar from "@/components/navbar";
@@ -40,6 +41,7 @@ const Home: React.FC = () => {
     const isEmptyConversation = currentConv && !currentConv.value && conversationInfo.conversationInfo.length === 0 && !content.msg && !content.response;
 
     const [selectKeys, setSelectKeys] = useState("")
+    const loading = useSelector(selectLoading)
     const [searchVisible, setSearchVisible] = useState(false)
     const [searchText, setSearchText] = useState("")
 
@@ -244,6 +246,9 @@ const Home: React.FC = () => {
     }
 
     const handleCreateClick = async () => {
+        // B8: AI 响应中禁止创建新对话，防止流式内容错乱
+        if (loading) return;
+
         console.log(currentConversationId);
 
         // 用户未配置时跳过（无 token，API 调用必然失败）
@@ -353,13 +358,16 @@ const Home: React.FC = () => {
                         <Button
                             type="text"
                             className="sider-btn"
-                            icon={<FormOutlined style={{ color: '#B0B0B0', fontSize: '2rem' }} />}
+                            icon={<FormOutlined style={{
+                                color: loading ? '#555' : '#B0B0B0',
+                                fontSize: '2rem'
+                            }} />}
                             style={{
                                 width: '4.8rem',
                                 height: '4.8rem',
                                 display: collapsed ? "none" : "block"
                             }}
-
+                            disabled={loading}
                             onClick={handleCreateClick}
                         ></Button>
 

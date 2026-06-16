@@ -1,6 +1,6 @@
 ﻿import { ChatEventType, RoleType } from "@coze/api";
 import { getToken, getBotId, createClient } from "../index";
-import { setContent } from "@/store/modules/content";
+import { setContent, cacheStreamContent, clearStreamCache } from "@/store/modules/content";
 import { useDispatch, useSelector } from "react-redux";
 import { selectConversationId } from "@/store/modules/conversation";
 import { setConversationInfo } from "@/store/modules/conversationInfo";
@@ -8,6 +8,7 @@ import axios from "axios";
 import { useMarked } from "@/components/marked";
 import { updateConversationTitle } from "@/store/modules/conversation";
 import { selectConversation } from "@/store/modules/conversation";
+import store from "@/store";
 
 // 自定义hook，用于启动对话
 export const useStartConversation = () => {
@@ -87,6 +88,19 @@ export const useStartConversation = () => {
             });
 
             for await (const part of stream) {
+                // B8: 检测对话是否已切换，避免旧会话流式内容污染新对话页
+                const latestId = store.getState().conversation.value.currentConversationId;
+                if (latestId !== currentConversationId) {
+                    console.log('对话已切换，缓存当前流式响应内容');
+                    // B8: 缓存已收到部分内容，切换回去时可恢复
+                    dispatch(cacheStreamContent({
+                        conversationId: currentConversationId,
+                        data: { msg: message, response: completeResponse, follow: followArr, message_id: messageId }
+                    }));
+                    hasError = true;
+                    break;
+                }
+
                 if (part.event === ChatEventType.CONVERSATION_CHAT_FAILED) {
                     console.error('Chat failed:', JSON.stringify(part.data, null, 2));
                     hasError = true;
@@ -122,6 +136,8 @@ export const useStartConversation = () => {
             // Ensure final state is dispatched after stream ends (only if no error)
             if (!hasError) {
                 dispatch(setContent({ msg: message, response: completeResponse, follow: followArr, message_id: messageId }));
+                // B8: 流正常完成，清除该对话的缓存内容
+                dispatch(clearStreamCache(currentConversationId));
             }
         } catch (err) {
             console.error('Stream iteration error:', err);
