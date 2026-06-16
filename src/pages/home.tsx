@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState, useCallback } from "react";
+import React, { ReactNode, useEffect, useState, useCallback, useRef } from "react";
 import { Flex, Layout, message, Menu, Button, Input } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { DeleteOutlined } from "@ant-design/icons";
@@ -45,19 +45,20 @@ const Home: React.FC = () => {
 
     // 用户配置弹窗状态
     const [configModalVisible, setConfigModalVisible] = useState(false);
-    const [initialPromptShown, setInitialPromptShown] = useState(false);
+    const initialPromptShown = useRef(false);
 
-    // 首次加载：如果用户未配置，弹出配置弹窗
+    // 首次加载/刷新：如果用户未配置，弹出配置弹窗
+    // 使用 useRef 避免 state 更新触发重渲染导致 cleanup 清除定时器
     useEffect(() => {
-        if (!isLoggedIn && !initialPromptShown) {
-            setInitialPromptShown(true);
+        if (!isLoggedIn && !initialPromptShown.current) {
+            initialPromptShown.current = true;
             // 延迟弹出，让页面先渲染
             const timer = setTimeout(() => {
                 setConfigModalVisible(true);
             }, 500);
             return () => clearTimeout(timer);
         }
-    }, [isLoggedIn, initialPromptShown]);
+    }, [isLoggedIn]);
 
     // 响应式：检测屏幕宽度变化
     useEffect(() => {
