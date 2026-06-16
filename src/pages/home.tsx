@@ -199,6 +199,14 @@ const Home: React.FC = () => {
                 return;
             }
 
+            // 已有 placeholder 但未配置 → 仅确保当前选中占位会话，避免重复创建
+            if (convs.some(c => c.conversation_id === 'placeholder')) {
+                if (!currentConversationId) {
+                    dispatch(setCurrentConversationId('placeholder'));
+                }
+                return;
+            }
+
             // 没有任何会话时
             if (!hasValidConfig()) {
                 // 用户未配置 → 创建占位会话展示空对话 UI
