@@ -160,35 +160,58 @@ const Home: React.FC = () => {
             }
         })
     }, [currentConversationId, searchVisible, searchText])
+    // 创建真实会话（Coze API）
+    const createRealConversation = async (): Promise<string | null> => {
+        try {
+            const response = await axios.post('https://api.coze.cn/v1/conversation/create', {}, {
+                headers: {
+                    Authorization: `Bearer ${getToken()}`,
+                    'Content-Type': 'application/json',
+                },
+            })
+            const { data } = response
+            if (data.code === 0) {
+                const id = data.data.id;
+                dispatch(addConversationContent({ conversation_id: id, value: '' }))
+                dispatch(setCurrentConversationId(id))
+                return id
+            }
+        } catch (err) {
+            console.log('创建会话失败:', err);
+            message.error('创建会话失败，请检查网络后重试');
+        }
+        return null
+    }
+
     useEffect(() => {
         const getConversationId = async () => {
-            const prevConversation = conversationContent[0]
-            if (prevConversation) {
-                return
-            }
-            // 用户未配置时跳过创建会话（无默认 token，请求必然失败）
-            if (!hasValidConfig()) {
-                return
-            }
-            try {
-                const response = await axios.post('https://api.coze.cn/v1/conversation/create', {}, {
-                    headers: {
-                        Authorization: `Bearer ${getToken()}`,
-                        'Content-Type': 'application/json',
-                    },
-                })
-                const { data } = response
-                if (data.code === 0) {
-                    console.log(data.data.id);
-                    dispatch(addConversationContent({ conversation_id: data.data.id, value: '' }))
-                    dispatch(setCurrentConversationId(data.data.id))
+            const convs = conversationContent;
+
+            // 已有真实会话（非 placeholder）→ 无需操作
+            if (convs.some(c => c.conversation_id !== 'placeholder')) return;
+
+            // 已有 placeholder 且用户已配置 → 先创建真实会话再删除占位符
+            if (convs.some(c => c.conversation_id === 'placeholder') && hasValidConfig()) {
+                const realId = await createRealConversation();
+                if (realId) {
+                    dispatch(deleteConversationContent('placeholder'));
                 }
-            } catch (err) {
-                console.log('创建初始会话失败（用户尚未配置 API Key，可忽略）:', err);
+                return;
             }
+
+            // 没有任何会话时
+            if (!hasValidConfig()) {
+                // 用户未配置 → 创建占位会话展示空对话 UI
+                dispatch(addConversationContent({ conversation_id: 'placeholder', value: '' }))
+                dispatch(setCurrentConversationId('placeholder'))
+                return
+            }
+
+            // 已配置 → 直接创建真实会话
+            await createRealConversation()
         }
         getConversationId()
-    }, [])
+    }, [isLoggedIn])
     const handleChangeClick = (data: boolean) => {
         setCollapsed(data)
     }

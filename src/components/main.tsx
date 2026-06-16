@@ -56,6 +56,12 @@ const Main: React.FC = () => {
             try {
                 // B7: 切换会话时清空 Redux content 状态
                 dispatch(setContent({ msg: '', response: '', follow: [], message_id: '' }));
+                // 占位会话/空会话不做历史消息加载，直接展示空对话 UI
+                if (!currentConversationId || currentConversationId === 'placeholder') {
+                    setHistoryLoading(false);
+                    setError('');
+                    return;
+                }
                 setHistoryLoading(true);
                 setError('');
 
