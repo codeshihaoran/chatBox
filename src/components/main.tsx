@@ -14,7 +14,8 @@ import { setContent } from "@/store/modules/content";
 import { useMarked } from "./marked";
 import { message, Spin } from "antd";
 import { Modal } from "antd";
-import { client, botId, token } from '../index'
+import { getToken, getBotId, createClient } from '../index'
+import { hasValidConfig } from '@/utils/userConfig'
 import { ChatEventType, RoleType } from "@coze/api";
 import axios from "axios";
 import { selectSentFiles, selectCurrentSessionId } from "@/store/modules/sentFileInfo";
@@ -62,7 +63,7 @@ const Main: React.FC = () => {
                     {},
                     {
                         headers: {
-                            Authorization: `Bearer ${token}`,
+                            Authorization: `Bearer ${getToken()}`,
                             'Content-Type': 'application/json',
                         },
                         params: { conversation_id: currentConversationId }
@@ -154,6 +155,11 @@ const Main: React.FC = () => {
     }, [conversationInfo, markRes, localFollow, localMsg, response])
 
     const handleClick = async (item: string) => {
+        // 检查用户是否已配置 API Key
+        if (!hasValidConfig()) {
+            message.warning('请先配置 API Key 后再发送消息');
+            return;
+        }
         dispatch(setLoading(true));
         try {
             await startConversation(item);
@@ -176,6 +182,11 @@ const Main: React.FC = () => {
     }
 
     const handleRegenerate = async () => {
+        // 检查用户是否已配置 API Key
+        if (!hasValidConfig()) {
+            message.warning('请先配置 API Key 后再发送消息');
+            return;
+        }
         // UX9: 重新生成前确认
         Modal.confirm({
             title: '重新生成',
@@ -193,7 +204,7 @@ const Main: React.FC = () => {
                             {},
                             {
                                 headers: {
-                                    Authorization: `Bearer ${token}`,
+                                    Authorization: `Bearer ${getToken()}`,
                                     'Content-Type': 'application/json',
                                 },
                                 params: { conversation_id: currentConversationId }
@@ -211,8 +222,8 @@ const Main: React.FC = () => {
                     setLocalFollow([])
 
                     // 先发起流请求（不删旧消息，防止流失败后对话为空）
-                    const stream = await client.chat.stream({
-                        bot_id: botId!,
+                    const stream = await createClient().chat.stream({
+                        bot_id: getBotId()!,
                         conversation_id: currentConversationId!,
                         additional_messages: [{
                             role: RoleType.User,
@@ -257,7 +268,7 @@ const Main: React.FC = () => {
                                 await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
                                     {
                                         headers: {
-                                            Authorization: `Bearer ${token}`,
+                                            Authorization: `Bearer ${getToken()}`,
                                             'Content-Type': 'application/json',
                                         },
                                         params: { conversation_id: currentConversationId, message_id: oldAssistantMsgId }
@@ -268,7 +279,7 @@ const Main: React.FC = () => {
                                 await axios.post('https://api.coze.cn/v1/conversation/message/delete', {},
                                     {
                                         headers: {
-                                            Authorization: `Bearer ${token}`,
+                                            Authorization: `Bearer ${getToken()}`,
                                             'Content-Type': 'application/json',
                                         },
                                         params: { conversation_id: currentConversationId, message_id: oldUserMsgId }

@@ -11,8 +11,9 @@ import { setFileInMap, getFileFromMap, deleteFileFromMap, clearFileMap } from "@
 import { addSentFile, updateSessionId } from '@/store/modules/sentFileInfo';
 
 import axios from "axios";
-import { token } from '@/index'
+import { getToken } from '@/index'
 import store from "@/store";
+import { hasValidConfig } from "@/utils/userConfig";
 
 // 定义消息内容类型
 interface TextMessage {
@@ -51,6 +52,13 @@ const Bottom: React.FC = () => {
 
    const handleClick = async () => {
         if (loading) return;
+
+        // 检查用户是否已配置 API Key
+        if (!hasValidConfig()) {
+            message.warning('请先配置 API Key 后再发送消息');
+            return;
+        }
+
        const editorContent = input.trim();
         if (!editorContent) {
             message.error('请输入内容');
@@ -70,7 +78,7 @@ const Bottom: React.FC = () => {
                     formData.append('file', getFileFromMap(item.file_id!))
                     const response = await axios.post('https://api.coze.cn/v1/files/upload', formData, {
                         headers: {
-                            "Authorization": `Bearer ${token}`,
+                            "Authorization": `Bearer ${getToken()}`,
                         },
                     });
                     const { code, data } = response.data;

@@ -17,12 +17,12 @@ html {
 }
 
 .header {
-    padding: 0;
+    padding: 0 1.2rem;
     width: 100%;
     color: #333;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     border-bottom: 1px solid #333;
     max-height: 6.4rem;
 }
@@ -49,6 +49,19 @@ html {
 
 .chat-navbar {
     width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-navbar-left {
+    display: flex;
+    align-items: center;
+}
+
+.chat-navbar-right {
+    display: flex;
+    align-items: center;
 }
 
 .chat-navbar-btn {
@@ -256,7 +269,8 @@ img {
 }
 
 .collapsed-btn:hover,
-.sider-btn:hover {
+.sider-btn:hover,
+.user-config-btn:hover {
     background-color: #2A2A2A !important;
 }
 

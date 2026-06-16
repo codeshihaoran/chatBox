@@ -5,6 +5,7 @@ import fileInfoReducer from '@/store/modules/fileInfo'
 import conversationReducer from '@/store/modules/conversation'
 import conversationInfoReducer from '@/store/modules/conversationInfo'
 import sentFileInfoReducer from '@/store/modules/sentFileInfo'
+import userConfigReducer from '@/store/modules/userConfig'
 
 export default configureStore({
     reducer: {
@@ -13,6 +14,7 @@ export default configureStore({
         fileInfo: fileInfoReducer,
         conversation: conversationReducer,
         conversationInfo: conversationInfoReducer,
-        sentFileInfo: sentFileInfoReducer
+        sentFileInfo: sentFileInfoReducer,
+        userConfig: userConfigReducer,
     }
 })

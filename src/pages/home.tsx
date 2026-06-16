@@ -4,15 +4,18 @@ import { useDispatch, useSelector } from "react-redux";
 import { DeleteOutlined } from "@ant-design/icons";
 const { Header, Sider, Content, Footer } = Layout
 
-import { token } from "../index";
+import { getToken } from "../index";
+import { hasValidConfig } from "@/utils/userConfig";
 import { addConversationContent, selectConversation, setCurrentConversationId, selectConversationId, deleteConversationContent } from "@/store/modules/conversation";
 import { selectConversationInfo } from "@/store/modules/conversationInfo";
 import { selectContent } from "@/store/modules/content";
+import { selectIsLoggedIn } from "@/store/modules/userConfig";
 
 
 import Navbar from "@/components/navbar";
 import Main from "@/components/main";
 import Bottom from "@/components/bottom";
+import UserConfigModal from "@/components/userConfigModal";
 import axios from "axios";
 import { FormOutlined, GithubOutlined, MessageOutlined, SearchOutlined } from "@ant-design/icons";
 
@@ -29,8 +32,7 @@ const Home: React.FC = () => {
     const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
     const conversationContent = useSelector(selectConversation)
     const currentConversationId = useSelector(selectConversationId)
-    console.log(currentConversationId);
-
+    const isLoggedIn = useSelector(selectIsLoggedIn)
 
     const conversationInfo = useSelector(selectConversationInfo);
     const content = useSelector(selectContent);
@@ -40,6 +42,22 @@ const Home: React.FC = () => {
     const [selectKeys, setSelectKeys] = useState("")
     const [searchVisible, setSearchVisible] = useState(false)
     const [searchText, setSearchText] = useState("")
+
+    // 用户配置弹窗状态
+    const [configModalVisible, setConfigModalVisible] = useState(false);
+    const [initialPromptShown, setInitialPromptShown] = useState(false);
+
+    // 首次加载：如果用户未配置，弹出配置弹窗
+    useEffect(() => {
+        if (!isLoggedIn && !initialPromptShown) {
+            setInitialPromptShown(true);
+            // 延迟弹出，让页面先渲染
+            const timer = setTimeout(() => {
+                setConfigModalVisible(true);
+            }, 500);
+            return () => clearTimeout(timer);
+        }
+    }, [isLoggedIn, initialPromptShown]);
 
     // 响应式：检测屏幕宽度变化
     useEffect(() => {
@@ -148,17 +166,25 @@ const Home: React.FC = () => {
             if (prevConversation) {
                 return
             }
-            const response = await axios.post('https://api.coze.cn/v1/conversation/create', {}, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-            })
-            const { data } = response
-            if (data.code === 0) {
-                console.log(data.data.id);
-                dispatch(addConversationContent({ conversation_id: data.data.id, value: '' }))
-                dispatch(setCurrentConversationId(data.data.id))
+            // 用户未配置时跳过创建会话（无默认 token，请求必然失败）
+            if (!hasValidConfig()) {
+                return
+            }
+            try {
+                const response = await axios.post('https://api.coze.cn/v1/conversation/create', {}, {
+                    headers: {
+                        Authorization: `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json',
+                    },
+                })
+                const { data } = response
+                if (data.code === 0) {
+                    console.log(data.data.id);
+                    dispatch(addConversationContent({ conversation_id: data.data.id, value: '' }))
+                    dispatch(setCurrentConversationId(data.data.id))
+                }
+            } catch (err) {
+                console.log('创建初始会话失败（用户尚未配置 API Key，可忽略）:', err);
             }
         }
         getConversationId()
@@ -188,40 +214,57 @@ const Home: React.FC = () => {
     const handleCreateClick = async () => {
         console.log(currentConversationId);
 
+        // 用户未配置时跳过（无 token，API 调用必然失败）
+        if (!hasValidConfig()) {
+            message.warning('请先配置 API Key 后再创建新对话');
+            return;
+        }
+
         const prevConversationId = conversationContent[0].conversation_id
 
-        const msgList = await axios.post('https://api.coze.cn/v1/conversation/message/list',
-            {},
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
-                params: { conversation_id: prevConversationId }
-            }
-        )
-        const { data } = msgList
-        if (data.data.length === 0) {
-            return
-        }
         try {
+            const msgList = await axios.post('https://api.coze.cn/v1/conversation/message/list',
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${getToken()}`,
+                        'Content-Type': 'application/json',
+                    },
+                    params: { conversation_id: prevConversationId }
+                }
+            )
+            const { data } = msgList
+            if (data.data.length === 0) {
+                return
+            }
 
             const response = await axios.post('https://api.coze.cn/v1/conversation/create', {}, {
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${getToken()}`,
                     'Content-Type': 'application/json',
                 },
             })
-            const { data } = response
-            if (data.code === 0) {
-                dispatch(addConversationContent({ conversation_id: data.data.id, value: '' }))
-                dispatch(setCurrentConversationId(data.data.id))
+            const { data: createData } = response
+            if (createData.code === 0) {
+                dispatch(addConversationContent({ conversation_id: createData.data.id, value: '' }))
+                dispatch(setCurrentConversationId(createData.data.id))
             }
         } catch (err) {
             console.log(err);
         }
 
     }
+
+    // 打开配置弹窗
+    const handleOpenConfig = () => {
+        setConfigModalVisible(true);
+    };
+
+    // 关闭配置弹窗
+    const handleCloseConfig = () => {
+        setConfigModalVisible(false);
+    };
+
     return (
         <Flex gap="middle" wrap>
             <Layout className="layout">
@@ -353,6 +396,8 @@ const Home: React.FC = () => {
                         <Navbar
                             sendStatusToHome={handleChangeClick}
                             status={collapsed}
+                            isLoggedIn={isLoggedIn}
+                            onOpenConfig={handleOpenConfig}
                         />
                     </Header>
                     {isEmptyConversation ? (
@@ -384,6 +429,12 @@ const Home: React.FC = () => {
                     )}
                 </Layout>
             </Layout>
+
+            {/* 用户配置弹窗 */}
+            <UserConfigModal
+                visible={configModalVisible}
+                onClose={handleCloseConfig}
+            />
         </Flex>
     )
 }

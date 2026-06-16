@@ -6,6 +6,7 @@ const baseConfig = require('./webpack.base.js')
 const { merge } = require('webpack-merge')
 
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin')
+const Dotenv = require('dotenv-webpack');
 
 module.exports = merge(baseConfig, {
     mode: 'development', // 开发模式
@@ -23,6 +24,11 @@ module.exports = merge(baseConfig, {
     },
     plugins: [
         // 避免修改 tsx 文件导致重新加载页面
-        new ReactRefreshWebpackPlugin() // 添加热更新插件
+        new ReactRefreshWebpackPlugin(), // 添加热更新插件
+        new Dotenv({
+            path: './.env',
+            safe: true,
+            systemvars: true,
+        }),
     ]
 })

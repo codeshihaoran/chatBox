@@ -1,5 +1,5 @@
 ﻿import { ChatEventType, RoleType } from "@coze/api";
-import { client, botId, token } from "../index";
+import { getToken, getBotId, createClient } from "../index";
 import { setContent } from "@/store/modules/content";
 import { useDispatch, useSelector } from "react-redux";
 import { selectConversationId } from "@/store/modules/conversation";
@@ -32,7 +32,7 @@ export const useStartConversation = () => {
                     {},
                     {
                         headers: {
-                            Authorization: `Bearer ${token}`,
+                            Authorization: `Bearer ${getToken()}`,
                             'Content-Type': 'application/json',
                         },
                         params: { conversation_id: currentConversationId }
@@ -80,8 +80,8 @@ export const useStartConversation = () => {
         let hasError = false;
 
         try {
-            const stream = await client.chat.stream({
-                bot_id: botId!,
+            const stream = await createClient().chat.stream({
+                bot_id: getBotId()!,
                 conversation_id: currentConversationId!,
                 additional_messages: additionalMsg,
             });
