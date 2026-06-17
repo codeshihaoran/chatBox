@@ -72,8 +72,8 @@ const Bottom: React.FC = () => {
             dispatch(updateSessionId());
             const newSessionId = store.getState().sentFileInfo.currentSessionId;
             if (fileInfo.length > 0) {
-                // 上传文件并获取文件ID
-                await Promise.all(fileInfo.map(async (item) => {
+                // 上传文件并获取文件ID（串行上传避免并发时 file_id 错配）
+                for (const item of fileInfo) {
                     const formData = new FormData()
                     formData.append('file', getFileFromMap(item.file_id!))
                     const response = await axios.post('https://api.coze.cn/v1/files/upload', formData, {
@@ -99,7 +99,7 @@ const Bottom: React.FC = () => {
                             session_id: newSessionId
                         }))
                     }
-                }))
+                }
 
                 const updatedFileInfo = store.getState().fileInfo.uploadFileInfo
                 const messageContent: MessageContent[] = [{
