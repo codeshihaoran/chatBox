@@ -2,12 +2,7 @@
 import { getToken, getBotId, createClient } from "../index";
 import { setContent, cacheStreamContent, clearStreamCache } from "@/store/modules/content";
 import { useDispatch, useSelector } from "react-redux";
-import { selectConversationId } from "@/store/modules/conversation";
-import { setConversationInfo } from "@/store/modules/conversationInfo";
-import axios from "axios";
-import { useMarked } from "@/components/marked";
-import { updateConversationTitle } from "@/store/modules/conversation";
-import { selectConversation } from "@/store/modules/conversation";
+import { selectConversationId, updateConversationTitle, selectConversation } from "@/store/modules/conversation";
 import store from "@/store";
 
 // 自定义hook，用于启动对话
@@ -16,7 +11,6 @@ export const useStartConversation = () => {
     const currentConversationId = useSelector(selectConversationId)
     const conversationContent = useSelector(selectConversation)
 
-    const startMarked = useMarked()
     const startConversation = async (message: string, contentType: string = 'text', mediaContent: any = null, metaData: string = '') => {
         // UX1: 如果是新对话（标题为空），使用第一条消息作为标题
         const currentConv = conversationContent.find(c => c.conversation_id === currentConversationId);
@@ -25,45 +19,8 @@ export const useStartConversation = () => {
             dispatch(updateConversationTitle({ conversation_id: currentConversationId!, title }));
         }
 
-        // 这里先获取消息列表
+        // 流式输出开始前清除之前内容，显示新消息
         dispatch(setContent({ msg: message, response: '', follow: [], message_id: '' }));
-        if (currentConversationId) {
-            try {
-                const response = await axios.post('https://api.coze.cn/v1/conversation/message/list',
-                    {},
-                    {
-                        headers: {
-                            Authorization: `Bearer ${getToken()}`,
-                            'Content-Type': 'application/json',
-                        },
-                        params: { conversation_id: currentConversationId }
-                    }
-                )
-                const { data } = response
-                if (data.code === 0) {
-                    data.data.reverse()
-                    const newData = []
-                    for (let i = 0; i < data.data.length; i += 2) {
-                        // 使用可选链防止 meta_data 为 undefined 时报错
-                        const metaInfo = data.data[i]?.meta_data
-                        const userMessage = metaInfo?.content || ''
-                        const metaId = metaInfo?.id || ''
-                        const assistantMessage = data.data[i + 1]
-                        const aiContent = assistantMessage ? await startMarked(assistantMessage.content) : ''
-                        const newItem = {
-                            userContent: userMessage || '',
-                            assistantContent: aiContent || '',
-                            meta_id: metaId
-                        };
-                        newData.push(newItem)
-                    }
-                    dispatch(setConversationInfo(newData))
-                }
-            } catch (err) {
-                console.log(err);
-                console.error('加载历史消息失败，请稍后重试');
-            }
-        }
         const meta_data: Record<string, string> = {
             id: metaData,
             content: message
