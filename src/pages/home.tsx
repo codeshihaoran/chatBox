@@ -259,36 +259,18 @@ const Home: React.FC = () => {
         // B8: AI 响应中禁止创建新对话，防止流式内容错乱
         if (loading) return;
 
-        console.log(currentConversationId);
-
         // 用户未配置时跳过（无 token，API 调用必然失败）
         if (!hasValidConfig()) {
             message.warning('请先配置 API Key 后再创建新对话');
             return;
         }
 
-        // 检查当前会话是否为空，防止重复创建空白对话
-        // 当没有现有会话时（空数组），跳过检查直接创建
-        const prevConversation = conversationContent[0];
-        if (prevConversation) {
-            try {
-                const msgList = await axios.post('https://api.coze.cn/v1/conversation/message/list',
-                    {},
-                    {
-                        headers: {
-                            Authorization: `Bearer ${getToken()}`,
-                            'Content-Type': 'application/json',
-                        },
-                        params: { conversation_id: prevConversation.conversation_id }
-                    }
-                )
-                const { data } = msgList
-                if (data.data.length === 0) {
-                    return
-                }
-            } catch (err) {
-                console.log('检查当前对话状态失败，继续创建新对话:', err);
-            }
+        // 使用 Redux 已有数据判断当前会话是否为空，避免冗余 API 调用
+        const currentConv = conversationContent.find(c => c.conversation_id === currentConversationId);
+        const hasMessages = currentConv?.value || conversationInfo.conversationInfo.length > 0;
+        if (!hasMessages) {
+            // 当前会话为空（无标题、无历史消息），不重复创建空白对话
+            return;
         }
 
         try {
