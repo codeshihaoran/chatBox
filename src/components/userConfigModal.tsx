@@ -1,11 +1,15 @@
 import React, { useState } from "react";
-import { Modal, Form, Input, Button, Alert, Typography, Space } from "antd";
+import { Modal, Form, Input, Button, Alert, Typography, Space, Divider, Image } from "antd";
 import {
   ApiOutlined,
   KeyOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
   LoadingOutlined,
+  QuestionCircleOutlined,
+  ArrowLeftOutlined,
+  LinkOutlined,
+  RightCircleOutlined,
 } from "@ant-design/icons";
 import {
   validateApiKey,
@@ -16,12 +20,75 @@ import {
 import { setIsLoggedIn } from "@/store/modules/userConfig";
 import { useDispatch } from "react-redux";
 
-const { Text } = Typography;
+// ===== 导入配置教程图片 =====
+import createKeyImg from "@/assets/coze/createKey.png";
+import keyInfoImg from "@/assets/coze/keyInfo.png";
+import addProjectImg from "@/assets/coze/addProject.png";
+import createBotImg from "@/assets/coze/createBot.png";
+import publishImg from "@/assets/coze/publish.png";
+import publishInfoImg from "@/assets/coze/publishInfo.png";
+import botInfoImg from "@/assets/coze/botInfo.png";
+
+const { Text, Title, Paragraph } = Typography;
 
 interface UserConfigModalProps {
   visible: boolean;
   onClose: () => void;
 }
+
+/** 教程步骤数据 */
+const GUIDE_STEPS = [
+  {
+    step: 1,
+    title: "创建 Personal Access Token",
+    description:
+      "访问 Coze 开放平台，在「个人访问令牌」页面点击「创建令牌」，填写令牌名称后生成。复制以 pat_ 开头的密钥并保存到下方表单中。",
+    note: "关闭页面后将无法再次查看完整密钥，请立即复制并保存。",
+    images: [
+      { src: createKeyImg, alt: "创建令牌页面", caption: "点击「创建令牌」" },
+      { src: keyInfoImg, alt: "复制密钥", caption: "复制生成的 pat_ 密钥" },
+    ],
+    link: "https://www.coze.cn/open/oauth/pats",
+    linkText: "打开 Coze 开放平台 →",
+  },
+  {
+    step: 2,
+    title: "创建 Bot",
+    description:
+      "在 Coze 平台创建一个你的 AI 机器人。如果你已有项目空间，可直接在项目中创建 Bot；如果没有，可先创建一个项目或使用默认空间。",
+    images: [
+      { src: addProjectImg, alt: "创建项目", caption: "选择或创建项目空间" },
+      { src: createBotImg, alt: "创建Bot", caption: "创建并配置你的 Bot" },
+    ],
+  },
+  {
+    step: 3,
+    title: "配置智能体",
+    description:
+      "创建完成后，点击进入你创建的智能体卡片，在智能体配置页面中设置角色提示词、技能等参数，完成智能体的个性化配置。",
+    images: [
+      { src: botInfoImg, alt: "配置智能体", caption: "配置智能体信息并点击卡片进入" },
+    ],
+  },
+  {
+    step: 4,
+    title: "发布 Bot",
+    description:
+      "智能体配置完成后，点击「发布」按钮将其发布到 API。只有发布后的 Bot 才能通过 API 调用，发布时可以选择配置相应的发布渠道。",
+    images: [
+      { src: publishImg, alt: "发布Bot", caption: "点击发布按钮" },
+      { src: publishInfoImg, alt: "发布信息", caption: "确认发布配置" },
+    ],
+  },
+  {
+    step: 5,
+    title: "获取 Bot ID",
+    description:
+      "发布成功后，查看当前浏览器地址栏，URL 中 `bot/` 后面的数字即为你的 Bot ID。复制该 ID 粘贴到下方表单的「Bot ID」输入框中。",
+    note: "例如 URL 为 https://www.coze.cn/store/bot/7650834423914627124，则 Bot ID 为 7650834423914627124。",
+    images: [],
+  },
+];
 
 /** 用户自定义配置表单组件
  *
@@ -34,6 +101,9 @@ const UserConfigModal: React.FC<UserConfigModalProps> = ({
 }) => {
   const dispatch = useDispatch();
   const [form] = Form.useForm();
+
+  // 视图模式：form（配置表单）| guide（配置教程）
+  const [viewMode, setViewMode] = useState<"form" | "guide">("form");
 
   // 测试状态
   const [testStatus, setTestStatus] = useState<
@@ -119,6 +189,7 @@ const UserConfigModal: React.FC<UserConfigModalProps> = ({
   };
 
   const resetAndClose = () => {
+    setViewMode("form");
     setTestStatus("idle");
     setTestMessage("");
     setIsVerified(false);
@@ -138,22 +209,9 @@ const UserConfigModal: React.FC<UserConfigModalProps> = ({
   const isTesting = testStatus === "testing";
   const canTest = !isTesting;
 
-  return (
-    <Modal
-      title={
-        <Space>
-          <KeyOutlined />
-          <span>配置你的 AI 助手</span>
-        </Space>
-      }
-      open={visible}
-      onCancel={handleCancel}
-      footer={null}
-      width={480}
-      centered
-      destroyOnClose
-      maskClosable
-    >
+  // ==================== 配置表单视图 ====================
+  const renderFormView = () => (
+    <>
       <div style={{ marginBottom: 20 }}>
         <Text type="secondary">
           请配置你的 Coze API Key 和 Bot ID，配置完成后即可开始与 AI 对话。
@@ -196,6 +254,23 @@ const UserConfigModal: React.FC<UserConfigModalProps> = ({
           />
         </Form.Item>
       </Form>
+
+      {/* 如何获取帮助入口 */}
+      <div
+        style={{
+          textAlign: "center",
+          marginBottom: 16,
+        }}
+      >
+        <Button
+          type="link"
+          icon={<QuestionCircleOutlined />}
+          onClick={() => setViewMode("guide")}
+          style={{ fontSize: 14 }}
+        >
+          如何获取 API Key 与 Bot ID？
+        </Button>
+      </div>
 
       {/* 测试结果提示 */}
       {testStatus === "success" && (
@@ -251,6 +326,226 @@ const UserConfigModal: React.FC<UserConfigModalProps> = ({
           保存并开始使用
         </Button>
       </div>
+    </>
+  );
+
+  // ==================== 教程指南视图 ====================
+  const renderGuideView = () => (
+    <div>
+      {/* 顶部返回按钮 + 标题 */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          marginBottom: 20,
+        }}
+      >
+        <Button
+          type="text"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => setViewMode("form")}
+          style={{ marginRight: 12, fontSize: 16, color: "#1677ff" }}
+        >
+          返回表单
+        </Button>
+        <Text strong style={{ fontSize: 18 }}>
+          如何获取 API Key 与 Bot ID
+        </Text>
+      </div>
+
+      <Paragraph type="secondary" style={{ marginBottom: 24, fontSize: 14 }}>
+        按照以下步骤完成配置，即可开始使用 AI 对话功能。
+      </Paragraph>
+
+      {/* 步骤列表 */}
+      <div
+        style={{
+          maxHeight: "calc(80vh - 180px)",
+          overflowY: "auto",
+          paddingRight: 8,
+        }}
+      >
+        {GUIDE_STEPS.map((step, index) => (
+          <div key={step.step} style={{ marginBottom: index < GUIDE_STEPS.length - 1 ? 28 : 0 }}>
+            {/* 步骤卡片 */}
+            <div
+              style={{
+                background: "#141414",
+                border: "1px solid #303030",
+                borderRadius: 12,
+                padding: "20px 24px",
+              }}
+            >
+              {/* 步骤标题行 */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
+                  marginBottom: 12,
+                }}
+              >
+                <div
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: "50%",
+                    background: "#1677ff",
+                    color: "#fff",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 600,
+                    fontSize: 16,
+                    flexShrink: 0,
+                  }}
+                >
+                  {step.step}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <Text strong style={{ fontSize: 16, display: "block", marginBottom: 4 }}>
+                    {step.title}
+                  </Text>
+                  <Paragraph
+                    type="secondary"
+                    style={{ marginBottom: step.note ? 4 : 0, fontSize: 13, lineHeight: 1.7 }}
+                  >
+                    {step.description}
+                  </Paragraph>
+                  {step.note && (
+                    <Text
+                      type="warning"
+                      style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+                    >
+                      ⚠ {step.note}
+                    </Text>
+                  )}
+                </div>
+              </div>
+
+              {/* 外部链接 */}
+              {step.link && (
+                <div style={{ marginBottom: 12 }}>
+                  <a
+                    href={step.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      color: "#1677ff",
+                      fontSize: 13,
+                    }}
+                  >
+                    <LinkOutlined />
+                    {step.linkText || step.link}
+                  </a>
+                </div>
+              )}
+
+              {/* 图片网格 */}
+              {step.images.length > 0 && (
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 12,
+                    marginTop: 8,
+                  }}
+                >
+                  {step.images.map((img, i) => (
+                    <div key={i} style={{ flex: "1 1 240px", minWidth: 200 }}>
+                      <Image
+                        src={img.src}
+                        alt={img.alt}
+                        style={{
+                          width: "100%",
+                          borderRadius: 8,
+                          border: "1px solid #333",
+                        }}
+                        preview={{ mask: "点击预览" }}
+                      />
+                      <div
+                        style={{
+                          textAlign: "center",
+                          color: "#888",
+                          fontSize: 12,
+                          marginTop: 6,
+                        }}
+                      >
+                        {img.caption}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 步骤之间的连接线 */}
+            {index < GUIDE_STEPS.length - 1 && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "center",
+                  padding: "8px 0",
+                  color: "#555",
+                }}
+              >
+                <RightCircleOutlined style={{ fontSize: 20 }} />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* 底部操作区 */}
+      <Divider style={{ borderColor: "#303030", margin: "20px 0 16px" }} />
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <Text type="secondary" style={{ fontSize: 13 }}>
+          完成以上步骤后，回到表单填写配置信息
+        </Text>
+        <Button
+          type="primary"
+          icon={<ArrowLeftOutlined />}
+          onClick={() => setViewMode("form")}
+        >
+          返回表单去配置
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <Modal
+      title={
+        viewMode === "form" ? (
+          <Space>
+            <KeyOutlined />
+            <span>配置你的 AI 助手</span>
+          </Space>
+        ) : (
+          <Space>
+            <QuestionCircleOutlined />
+            <span>配置教程</span>
+          </Space>
+        )
+      }
+      open={visible}
+      onCancel={handleCancel}
+      footer={null}
+      width={viewMode === "guide" ? 720 : 480}
+      centered
+      destroyOnClose
+      maskClosable={false}
+    >
+      {viewMode === "form" ? renderFormView() : renderGuideView()}
     </Modal>
   );
 };
