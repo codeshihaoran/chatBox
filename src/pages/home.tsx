@@ -257,24 +257,31 @@ const Home: React.FC = () => {
             return;
         }
 
-        const prevConversationId = conversationContent[0].conversation_id
+        // 检查当前会话是否为空，防止重复创建空白对话
+        // 当没有现有会话时（空数组），跳过检查直接创建
+        const prevConversation = conversationContent[0];
+        if (prevConversation) {
+            try {
+                const msgList = await axios.post('https://api.coze.cn/v1/conversation/message/list',
+                    {},
+                    {
+                        headers: {
+                            Authorization: `Bearer ${getToken()}`,
+                            'Content-Type': 'application/json',
+                        },
+                        params: { conversation_id: prevConversation.conversation_id }
+                    }
+                )
+                const { data } = msgList
+                if (data.data.length === 0) {
+                    return
+                }
+            } catch (err) {
+                console.log('检查当前对话状态失败，继续创建新对话:', err);
+            }
+        }
 
         try {
-            const msgList = await axios.post('https://api.coze.cn/v1/conversation/message/list',
-                {},
-                {
-                    headers: {
-                        Authorization: `Bearer ${getToken()}`,
-                        'Content-Type': 'application/json',
-                    },
-                    params: { conversation_id: prevConversationId }
-                }
-            )
-            const { data } = msgList
-            if (data.data.length === 0) {
-                return
-            }
-
             const response = await axios.post('https://api.coze.cn/v1/conversation/create', {}, {
                 headers: {
                     Authorization: `Bearer ${getToken()}`,
