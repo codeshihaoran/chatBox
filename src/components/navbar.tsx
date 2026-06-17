@@ -33,7 +33,7 @@ const Navbar: React.FC<NavbarProps> = ({ sendStatusToHome, status, isLoggedIn, o
                 clearUserConfig();
                 localStorage.removeItem('conversationContent');
                 localStorage.removeItem('currentConversationId');
-                localStorage.removeItem('sentFiles');
+                localStorage.removeItem('sentFileInfo');
                 window.location.reload();
             },
         });
