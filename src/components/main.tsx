@@ -71,6 +71,14 @@ const Main: React.FC = () => {
                     dispatch(setContent({ msg: '', response: '', follow: [], message_id: '', meta_id: '' }));
                 }
                 isFirstMountRef.current = false;
+                // B9: 首次挂载时如果已有流内容（startConversation 已设置 msg），
+                // 立即跳过历史加载，避免历史消息加载的 GET /message/list 与流式区域竞态
+                const activeContent = store.getState().content.value;
+                if (activeContent.msg || activeContent.response) {
+                    setHistoryLoading(false);
+                    setError('');
+                    return;
+                }
                 // 占位会话/空会话不做历史消息加载，直接展示空对话 UI
                 if (!currentConversationId || currentConversationId === 'placeholder') {
                     setHistoryLoading(false);
