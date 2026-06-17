@@ -1,6 +1,8 @@
 ﻿import { ChatEventType, RoleType } from "@coze/api";
+import { marked } from "marked";
 import { getToken, getBotId, createClient } from "../index";
 import { setContent, cacheStreamContent, clearStreamCache } from "@/store/modules/content";
+import { setConversationInfo } from "@/store/modules/conversationInfo";
 import { useDispatch, useSelector } from "react-redux";
 import { selectConversationId, updateConversationTitle, selectConversation } from "@/store/modules/conversation";
 import store from "@/store";
@@ -19,8 +21,30 @@ export const useStartConversation = () => {
             dispatch(updateConversationTitle({ conversation_id: currentConversationId!, title }));
         }
 
+        // B9: 在开始新对话前，将上一轮完成的对话记录保存到 conversationInfo
+        // 确保历史消息在同一对话页中不会因新消息发送而丢失
+        const prevContent = store.getState().content.value;
+        if (prevContent.msg && prevContent.response) {
+            const prevConvInfo = store.getState().conversationInfo.value.conversationInfo;
+            // 避免重复保存：检查 conversationInfo 最后一条是否与上一轮记录相同
+            const lastEntry = prevConvInfo[prevConvInfo.length - 1];
+            if (!lastEntry || lastEntry.userContent !== prevContent.msg) {
+                let htmlContent = '';
+                try {
+                    htmlContent = await marked(prevContent.response) as string;
+                } catch (e) {
+                    htmlContent = prevContent.response;
+                }
+                dispatch(setConversationInfo([...prevConvInfo, {
+                    userContent: prevContent.msg,
+                    assistantContent: htmlContent,
+                    meta_id: prevContent.meta_id || '',
+                }]));
+            }
+        }
+
         // 流式输出开始前清除之前内容，显示新消息
-        dispatch(setContent({ msg: message, response: '', follow: [], message_id: '' }));
+        dispatch(setContent({ msg: message, response: '', follow: [], message_id: '', meta_id: metaData }));
         const meta_data: Record<string, string> = {
             id: metaData,
             content: message
@@ -52,7 +76,7 @@ export const useStartConversation = () => {
                     // B8: 缓存已收到部分内容，切换回去时可恢复
                     dispatch(cacheStreamContent({
                         conversationId: currentConversationId,
-                        data: { msg: message, response: completeResponse, follow: followArr, message_id: messageId }
+                        data: { msg: message, response: completeResponse, follow: followArr, message_id: messageId, meta_id: metaData }
                     }));
                     hasError = true;
                     break;
@@ -73,12 +97,12 @@ export const useStartConversation = () => {
                 if (part.event === ChatEventType.CONVERSATION_MESSAGE_DELTA) {
                     completeResponse += part.data.content;
                     messageId = part.data.id;
-                    dispatch(setContent({ msg: message, response: completeResponse, follow: followArr, message_id: messageId }));
+                    dispatch(setContent({ msg: message, response: completeResponse, follow: followArr, message_id: messageId, meta_id: metaData }));
                 }
 
                 if (part.event === ChatEventType.CONVERSATION_MESSAGE_COMPLETED && part.data.type === "follow_up") {
                     followArr = [...followArr, part.data.content];
-                    dispatch(setContent({ msg: message, response: completeResponse, follow: followArr, message_id: messageId }));
+                    dispatch(setContent({ msg: message, response: completeResponse, follow: followArr, message_id: messageId, meta_id: metaData }));
                 }
 
                 if (part.event === ChatEventType.CONVERSATION_CHAT_COMPLETED) {
@@ -92,7 +116,7 @@ export const useStartConversation = () => {
 
             // Ensure final state is dispatched after stream ends (only if no error)
             if (!hasError) {
-                dispatch(setContent({ msg: message, response: completeResponse, follow: followArr, message_id: messageId }));
+                dispatch(setContent({ msg: message, response: completeResponse, follow: followArr, message_id: messageId, meta_id: metaData }));
                 // B8: 流正常完成，清除该对话的缓存内容
                 dispatch(clearStreamCache(currentConversationId));
             }

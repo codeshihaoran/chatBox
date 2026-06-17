@@ -21,14 +21,6 @@ import store from "@/store";
 
 
 const Main: React.FC = () => {
-    // UX10: 格式化时间
-    const getCurrentTime = (): string => {
-        const d = new Date();
-        const h = d.getHours().toString().padStart(2, '0');
-        const m = d.getMinutes().toString().padStart(2, '0');
-        return `${h}:${m}`;
-    };
-
     const currentConversationId = useSelector(selectConversationId)
     const content = useSelector(selectContent);
     const { conversationInfo } = useSelector(selectConversationInfo)
@@ -48,6 +40,8 @@ const Main: React.FC = () => {
     const sentFiles = useSelector(selectSentFiles);
     const currentSessionId = useSelector(selectCurrentSessionId);
     const loading = useSelector(selectLoading);
+    // B9: 追踪是否为 Main 组件首次挂载，避免首次挂载时清空刚 set 的流内容
+    const isFirstMountRef = useRef(true);
 
     // 预计算 sentFiles 按 session_id 索引，避免每次渲染重复 filter
     const sentFilesBySession = useMemo(() => {
@@ -71,8 +65,12 @@ const Main: React.FC = () => {
         let cancelled = false;
         const getHistoryInfo = async () => {
             try {
-                // B7: 切换会话时清空 Redux content 状态
-                dispatch(setContent({ msg: '', response: '', follow: [], message_id: '' }));
+                // B9: 首次挂载时不清空 content（可能是 startConversation 刚设置的流内容）
+                // 后续 currentConversationId 变化时由 home.tsx 的对话切换逻辑负责清空
+                if (!isFirstMountRef.current) {
+                    dispatch(setContent({ msg: '', response: '', follow: [], message_id: '', meta_id: '' }));
+                }
+                isFirstMountRef.current = false;
                 // 占位会话/空会话不做历史消息加载，直接展示空对话 UI
                 if (!currentConversationId || currentConversationId === 'placeholder') {
                     setHistoryLoading(false);
@@ -108,7 +106,6 @@ const Main: React.FC = () => {
                             userContent: userMessage || '',
                             assistantContent: aiContent || '',
                             meta_id: metaId,
-                            timestamp: getCurrentTime()
                         };
                         newData.push(newItem)
                     }
@@ -264,7 +261,7 @@ const Main: React.FC = () => {
                     let followArr: string[] = [];
                     let messageId = ''
                     let hasError = false;
-                    dispatch(setContent({ msg: localMsg, response: '', follow: [], message_id: '' }))
+                    dispatch(setContent({ msg: localMsg, response: '', follow: [], message_id: '', meta_id: '' }))
                     const regenerateId = currentConversationId;
                     for await (const part of stream) {
                         // B8: 检测对话是否已切换，避免重新生成的流式内容污染其他对话
@@ -274,7 +271,7 @@ const Main: React.FC = () => {
                             // B8: 缓存部分响应内容，切换回去时可恢复
                             dispatch(cacheStreamContent({
                                 conversationId: regenerateId,
-                                data: { msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId }
+                                data: { msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId, meta_id: '' }
                             }));
                             hasError = true;
                             break;
@@ -295,11 +292,11 @@ const Main: React.FC = () => {
                         if (part.event === ChatEventType.CONVERSATION_MESSAGE_DELTA) {
                             completeResponse += part.data.content;
                             messageId = part.data.id;
-                            dispatch(setContent({ msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId }));
+                            dispatch(setContent({ msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId, meta_id: '' }));
                         }
                         if (part.event === ChatEventType.CONVERSATION_MESSAGE_COMPLETED && part.data.type === "follow_up") {
                             followArr = [...followArr, part.data.content];
-                            dispatch(setContent({ msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId }));
+                            dispatch(setContent({ msg: localMsg, response: completeResponse, follow: followArr, message_id: messageId, meta_id: '' }));
                         }
                     }
 
@@ -367,8 +364,6 @@ const Main: React.FC = () => {
             {conversationInfo && conversationInfo.map((item, index) => (
                 <div className="main" key={index}>
                     {item.userContent && <div className="user">
-                        {/* UX10: 消息时间戳 */}
-                        {item.timestamp && <div className="message-time">{item.timestamp}</div>}
                         {(sentFilesBySession.get(item.meta_id) || []).map(file => (
                             file.fileType === 'image' ? (
                                 <div key={file.file_id} className="uploaded-image">
@@ -384,8 +379,6 @@ const Main: React.FC = () => {
                     </div>}
                     {item.assistantContent && (
                         <div className="ai">
-                            {/* UX10: 消息时间戳 */}
-                            {item.timestamp && <div className="message-time-left">{item.timestamp}</div>}
                             <div className="test" dangerouslySetInnerHTML={{ __html: item.assistantContent }} />
                         </div>
                     )}
@@ -395,8 +388,6 @@ const Main: React.FC = () => {
             {/* 流式输出区域 */}
             <div className="main">
                 {localMsg && <div className="user">
-                    {/* UX10: 当前消息时间戳 */}
-                    <div className="message-time">{getCurrentTime()}</div>
                     {currentSessionFiles.map(file => (
                         file.fileType === 'image' ? (
                             <div key={file.file_id} className="uploaded-image">

@@ -5,6 +5,7 @@ interface StreamCacheEntry {
     response: string;
     follow: string[];
     message_id: string;
+    meta_id: string;
 }
 
 export const contentSlice = createSlice({
@@ -14,7 +15,8 @@ export const contentSlice = createSlice({
             msg: '',
             response: '',
             follow: [] as string[],
-            message_id: ''
+            message_id: '',
+            meta_id: ''
         },
         // B8: 按对话 ID 缓存流式响应的中间内容，切换回时恢复
         streamCache: {} as Record<string, StreamCacheEntry>
@@ -33,6 +35,9 @@ export const contentSlice = createSlice({
             }
             if (action.payload.message_id !== undefined && action.payload.message_id !== null) {
                 state.value.message_id = action.payload.message_id;
+            }
+            if (action.payload.meta_id !== undefined && action.payload.meta_id !== null) {
+                state.value.meta_id = action.payload.meta_id;
             }
         },
         // B8: 缓存某个对话的流式响应中间内容（切换会话时保存）
@@ -54,6 +59,7 @@ export const contentSlice = createSlice({
                 state.value.response = cached.response;
                 state.value.follow = cached.follow;
                 state.value.message_id = cached.message_id;
+                state.value.meta_id = cached.meta_id;
                 delete state.streamCache[action.payload];
             }
         }
@@ -62,5 +68,5 @@ export const contentSlice = createSlice({
 
 export const { setContent, cacheStreamContent, clearStreamCache, restoreFromCache } = contentSlice.actions
 export default contentSlice.reducer
-export const selectContent = (state: { content: { value: { msg: string, response: string, follow: string[], message_id: string }; }; }) => state.content.value
+export const selectContent = (state: { content: { value: { msg: string, response: string, follow: string[], message_id: string, meta_id: string }; }; }) => state.content.value
 export const selectStreamCache = (state: { content: { streamCache: Record<string, StreamCacheEntry> } }) => state.content.streamCache

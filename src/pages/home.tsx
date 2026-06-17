@@ -8,7 +8,7 @@ import { getToken } from "../index";
 import { hasValidConfig } from "@/utils/userConfig";
 import { addConversationContent, selectConversation, setCurrentConversationId, selectConversationId, deleteConversationContent } from "@/store/modules/conversation";
 import { selectConversationInfo } from "@/store/modules/conversationInfo";
-import { selectContent } from "@/store/modules/content";
+import { selectContent, setContent } from "@/store/modules/content";
 import { selectIsLoggedIn } from "@/store/modules/userConfig";
 import { selectLoading } from "@/store/modules/loading";
 
@@ -184,6 +184,8 @@ const Home: React.FC = () => {
     }
     const handleSelectClick = (e: any) => {
         setSelectKeys(e.key)
+        // B9: 切换会话前清空当前流式内容，防止旧对话内容污染新对话页
+        dispatch(setContent({ msg: '', response: '', follow: [], message_id: '', meta_id: '' }));
         menuItems.forEach(item => {
             if (item.key === e.key) {
                 dispatch(setCurrentConversationId(item.id))
@@ -272,6 +274,9 @@ const Home: React.FC = () => {
             // 当前会话为空（无标题、无历史消息），不重复创建空白对话
             return;
         }
+
+        // B9: 创建新对话前清空当前流式内容，防止旧对话内容污染新对话页
+        dispatch(setContent({ msg: '', response: '', follow: [], message_id: '', meta_id: '' }));
 
         try {
             const response = await axios.post('https://api.coze.cn/v1/conversation/create', {}, {
