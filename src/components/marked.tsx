@@ -42,9 +42,9 @@ export const useMarked = () => {
 
             block.innerHTML = highlightedCode
 
-            let fistChild = block.firstChild
-            if (fistChild) {
-                block.insertBefore(blockTopStyle, fistChild)
+            let firstChild = block.firstChild
+            if (firstChild) {
+                block.insertBefore(blockTopStyle, firstChild)
             }
 
             block.classList.add('hljs')
