@@ -7,6 +7,9 @@ interface SentFileInfo {
     fileBase: string
     session_id: string
 }
+
+const MAX_SENT_FILES = 50;
+
 const getStoredFileInfo = () => {
     try {
         const stored = localStorage.getItem("sentFileInfo")
@@ -22,9 +25,13 @@ export const sentFileInfoSlice = createSlice({
         currentSessionId: Date.now().toString()
     },
     reducers: {
-        // 添加已发送的文件
+        // 添加已发送的文件，超出上限时自动移除最旧记录
         addSentFile: (state, action) => {
             state.sentFiles.push(action.payload)
+            // 超出上限时，从头部移除最旧的记录
+            while (state.sentFiles.length > MAX_SENT_FILES) {
+                state.sentFiles.shift()
+            }
             localStorage.setItem("sentFileInfo", JSON.stringify(state.sentFiles))
         },
         // 更新当前会话ID
