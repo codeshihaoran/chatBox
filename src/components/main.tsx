@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState, useMemo } from "react";
 import { useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import 'highlight.js/styles/atom-one-dark.css';
@@ -26,7 +26,7 @@ const Main: React.FC = () => {
         const d = new Date();
         const h = d.getHours().toString().padStart(2, '0');
         const m = d.getMinutes().toString().padStart(2, '0');
-        `${h}:${m}`;
+        return `${h}:${m}`;
     };
 
     const currentConversationId = useSelector(selectConversationId)
@@ -48,6 +48,24 @@ const Main: React.FC = () => {
     const sentFiles = useSelector(selectSentFiles);
     const currentSessionId = useSelector(selectCurrentSessionId);
     const loading = useSelector(selectLoading);
+
+    // 预计算 sentFiles 按 session_id 索引，避免每次渲染重复 filter
+    const sentFilesBySession = useMemo(() => {
+        const map = new Map<string, typeof sentFiles>();
+        sentFiles.forEach(file => {
+            const existing = map.get(file.session_id);
+            if (existing) {
+                existing.push(file);
+            } else {
+                map.set(file.session_id, [file]);
+            }
+        });
+        return map;
+    }, [sentFiles]);
+    const currentSessionFiles = useMemo(() =>
+        sentFilesBySession.get(currentSessionId) || [],
+        [sentFilesBySession, currentSessionId]
+    );
 
     useEffect(() => {
         let cancelled = false;
@@ -351,20 +369,17 @@ const Main: React.FC = () => {
                     {item.userContent && <div className="user">
                         {/* UX10: 消息时间戳 */}
                         {item.timestamp && <div className="message-time">{item.timestamp}</div>}
-                        {sentFiles
-                            .filter(file => file.session_id === item.meta_id)
-                            .map(file => (
-                                file.fileType === 'image' ? (
-                                    <div key={file.file_id} className="uploaded-image">
-                                        <img src={file.fileBase} alt={file.fileName} className="chat-image" />
-                                    </div>
-                                ) : (
-                                    <div key={file.file_id} className="uploaded-file">
-                                        <a href="#">📎 {file.fileName}</a>
-                                    </div>
-                                )
-                            ))
-                        }
+                        {(sentFilesBySession.get(item.meta_id) || []).map(file => (
+                            file.fileType === 'image' ? (
+                                <div key={file.file_id} className="uploaded-image">
+                                    <img src={file.fileBase} alt={file.fileName} className="chat-image" />
+                                </div>
+                            ) : (
+                                <div key={file.file_id} className="uploaded-file">
+                                    <a href="#">📎 {file.fileName}</a>
+                                </div>
+                            )
+                        ))}
                         {item.userContent}
                     </div>}
                     {item.assistantContent && (
@@ -382,20 +397,17 @@ const Main: React.FC = () => {
                 {localMsg && <div className="user">
                     {/* UX10: 当前消息时间戳 */}
                     <div className="message-time">{getCurrentTime()}</div>
-                    {sentFiles
-                        .filter(file => file.session_id === currentSessionId)
-                        .map(file => (
-                            file.fileType === 'image' ? (
-                                <div key={file.file_id} className="uploaded-image">
-                                    <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '100%', maxHeight: 'none' }} />
-                                </div>
-                            ) : (
-                                <div key={file.file_id} className="uploaded-file">
-                                    <a href="#">?? {file.fileName}</a>
-                                </div>
-                            )
-                        ))
-                    }
+                    {currentSessionFiles.map(file => (
+                        file.fileType === 'image' ? (
+                            <div key={file.file_id} className="uploaded-image">
+                                <img src={file.fileBase} alt={file.fileName} style={{ maxWidth: '100%', maxHeight: 'none' }} />
+                            </div>
+                        ) : (
+                            <div key={file.file_id} className="uploaded-file">
+                                <a href="#">📎 {file.fileName}</a>
+                            </div>
+                        )
+                    ))}
                     {localMsg}
                 </div>}
                 <div className="ai">

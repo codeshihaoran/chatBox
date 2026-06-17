@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useState, useCallback, useRef } from "react";
+import React, { ReactNode, useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { Flex, Layout, message, Menu, Button, Input } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import { DeleteOutlined } from "@ant-design/icons";
@@ -37,8 +37,14 @@ const Home: React.FC = () => {
 
     const conversationInfo = useSelector(selectConversationInfo);
     const content = useSelector(selectContent);
-    const currentConv = conversationContent.find(c => c.conversation_id === currentConversationId);
-    const isEmptyConversation = currentConv && !currentConv.value && conversationInfo.conversationInfo.length === 0 && !content.msg && !content.response;
+    const currentConv = useMemo(() =>
+        conversationContent.find(c => c.conversation_id === currentConversationId),
+        [conversationContent, currentConversationId]
+    );
+    const isEmptyConversation = useMemo(() =>
+        currentConv && !currentConv.value && conversationInfo.conversationInfo.length === 0 && !content.msg && !content.response,
+        [currentConv, conversationInfo.conversationInfo.length, content.msg, content.response]
+    );
 
     const [selectKeys, setSelectKeys] = useState("")
     const loading = useSelector(selectLoading)
@@ -79,56 +85,6 @@ const Home: React.FC = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const menuItems: MenuItems[] = conversationContent
-        .filter(item => {
-            if (!searchVisible || !searchText) return true
-            return item.value && item.value.toLowerCase().includes(searchText.toLowerCase())
-        })
-        .map((item, index) => ({
-            key: index.toString(),
-            id: item.conversation_id,
-            label: (
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        width: '100%'
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <span style={{
-                        color: '#ffffff',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: '10rem',
-                        display: 'block',
-                        textAlign: 'left',
-                        flex: 1
-                    }}>
-                        {item.value ? item.value.substring(0, 20) + (item.value.length > 20 ? '...' : '') : '新对话'}
-                    </span>
-                    <Button
-                        type="text"
-                        size="small"
-                        icon={<DeleteOutlined style={{ color: '#B0B0B0', fontSize: '1.4rem' }} />}
-                        style={{
-                            marginLeft: '0.8rem',
-                            minWidth: '2.4rem',
-                            height: '2.4rem',
-                            padding: 0
-                        }}
-                        disabled={conversationContent.length <= 1}
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteConversation(item.conversation_id);
-                        }}
-                    />
-                </div>
-            ),
-            icon: <MessageOutlined style={{ color: '#B0B0B0' }} />
-        }))
     useEffect(() => {
         const handleCopyClick = async (e: MouseEvent) => {
             const target = e.target as HTMLElement;
@@ -239,11 +195,65 @@ const Home: React.FC = () => {
         }
     }
 
-    const handleDeleteConversation = (conversationId: string) => {
+    const handleDeleteConversation = useCallback((conversationId: string) => {
         if (conversationContent.length <= 1) return
         dispatch(deleteConversationContent(conversationId))
         message.success('对话已删除')
-    }
+    }, [conversationContent.length, dispatch])
+
+    // 使用 useMemo 缓存 menuItems，避免每次渲染重新计算
+    const menuItems = useMemo<MenuItems[]>(() => {
+        return conversationContent
+            .filter(item => {
+                if (!searchVisible || !searchText) return true
+                return item.value && item.value.toLowerCase().includes(searchText.toLowerCase())
+            })
+            .map((item, index) => ({
+                key: index.toString(),
+                id: item.conversation_id,
+                label: (
+                    <div
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            width: '100%'
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <span style={{
+                            color: '#ffffff',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '10rem',
+                            display: 'block',
+                            textAlign: 'left',
+                            flex: 1
+                        }}>
+                            {item.value ? item.value.substring(0, 20) + (item.value.length > 20 ? '...' : '') : '新对话'}
+                        </span>
+                        <Button
+                            type="text"
+                            size="small"
+                            icon={<DeleteOutlined style={{ color: '#B0B0B0', fontSize: '1.4rem' }} />}
+                            style={{
+                                marginLeft: '0.8rem',
+                                minWidth: '2.4rem',
+                                height: '2.4rem',
+                                padding: 0
+                            }}
+                            disabled={conversationContent.length <= 1}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteConversation(item.conversation_id);
+                            }}
+                        />
+                    </div>
+                ),
+                icon: <MessageOutlined style={{ color: '#B0B0B0' }} />
+            }))
+    }, [conversationContent, searchVisible, searchText, handleDeleteConversation])
 
     const handleCreateClick = async () => {
         // B8: AI 响应中禁止创建新对话，防止流式内容错乱
