@@ -47,33 +47,33 @@ chatBox 是一个用于接入 **Coze API** 的 AI 对话前端应用，基于 `R
 
 ### 用户自定义配置
 
-![项目图片](src\assets\configurationInfo.png)
-![项目图片](src\assets\configurationInfoProcess.png)
+![项目图片](src/assets/configurationInfo.png)
+![项目图片](src/assets/configurationInfoProcess.png)
 
 
 ### 智能对话能力
-![项目图片](src\assets\normalView.png)
-![项目图片](src\assets\chatView.png)
+![项目图片](src/assets/normalView.png)
+![项目图片](src/assets/chatView.png)
 
 ### 多模态内容支持
 
-![项目图片](src\assets\imagePreview.png)
-![项目图片](src\assets\imageAnalysis.png)
+![项目图片](src/assets/imagePreview.png)
+![项目图片](src/assets/imageAnalysis.png)
 
 
 ### 响应内容支持
 
-![项目图片](src\assets\createImage.png)
-![项目图片](src\assets\codeBlock.png)
+![项目图片](src/assets/createImage.png)
+![项目图片](src/assets/codeBlock.png)
 
 ### 对话历史保存
 
-![项目图片](src\assets\longChat.png)
+![项目图片](src/assets/longChat.png)
 
 ### 会话历史列表操作
 
-![项目图片](src\assets\sessionList.png)
-![项目图片](src\assets\searchSession.png)
+![项目图片](src/assets/sessionList.png)
+![项目图片](src/assets/searchSession.png)
 
 
 ## 功能需求图
