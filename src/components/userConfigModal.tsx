@@ -403,19 +403,17 @@ const UserConfigModal: React.FC<UserConfigModalProps> = ({
                   {step.step}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <Text strong style={{ fontSize: 16, display: "block", marginBottom: 4 }}>
+                  <Text strong style={{ fontSize: 16, display: "block", marginBottom: 4, color: "#f0f0f0" }}>
                     {step.title}
                   </Text>
                   <Paragraph
-                    type="secondary"
-                    style={{ marginBottom: step.note ? 4 : 0, fontSize: 13, lineHeight: 1.7 }}
+                    style={{ marginBottom: step.note ? 4 : 0, fontSize: 13, lineHeight: 1.7, color: "#b0b0b0" }}
                   >
                     {step.description}
                   </Paragraph>
                   {step.note && (
                     <Text
-                      type="warning"
-                      style={{ fontSize: 12, display: "block", marginBottom: 8 }}
+                      style={{ fontSize: 12, display: "block", marginBottom: 8, color: "#d4a017" }}
                     >
                       ⚠ {step.note}
                     </Text>
